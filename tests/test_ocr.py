@@ -27,3 +27,4 @@ def test_mock_parser():
     finally:
         if os.path.exists(path):
             os.remove(path)
+

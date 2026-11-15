@@ -104,3 +104,4 @@ def test_get_expiring_items(temp_db):
     assert "닭가슴살" in names
     # 양파는 21일 보관이므로 D-3에 안 잡힘
     assert "양파" not in names
+

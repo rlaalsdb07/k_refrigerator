@@ -111,3 +111,4 @@ class ExpiryCalculator:
 
         delta = expiry_date - ref_date
         return delta.days
+

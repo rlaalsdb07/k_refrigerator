@@ -242,3 +242,4 @@ class InventoryManager:
             if not item.get("is_seasoning", False) and item.get("quantity", 0) > 0 and item.get("days_left", 0) >= 0
         })
         return sorted(available)
+
