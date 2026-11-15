@@ -3,12 +3,17 @@
 """
 import json
 import os
+import sys
 import tempfile
 import pytest
 
-from src.db.expiry_calculator import ExpiryCalculator
-from src.db.inventory_manager import InventoryManager
-from src.ocr.schema import ReceiptParseResult, ReceiptItem
+_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if _ROOT not in sys.path:
+    sys.path.insert(0, _ROOT)
+
+from src.db.expiry_calculator import ExpiryCalculator  # noqa: E402
+from src.db.inventory_manager import InventoryManager  # noqa: E402
+from src.ocr.schema import ReceiptParseResult, ReceiptItem  # noqa: E402
 
 
 @pytest.fixture

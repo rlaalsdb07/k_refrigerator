@@ -5,11 +5,19 @@ import base64
 import mimetypes
 import os
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Any
 
 from .schema import ReceiptParseResult, ReceiptItem
 
-# .env 로드 시도 (python-dotenv 미설치 환경 대비 fallback 포함)
+# google-genai SDK 로드
+try:
+    from google import genai
+    HAS_GENAI = True
+except ImportError:
+    genai = None  # type: ignore
+    HAS_GENAI = False
+
+# .env 로드 시도
 try:
     from dotenv import load_dotenv
     load_dotenv()
@@ -56,10 +64,12 @@ class ReceiptParser:
 
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key or os.environ.get("GEMINI_API_KEY")
-        self.client = None
-        if self.api_key and self.api_key != "your_gemini_api_key_here":
+        self.client: Any = None
+        has_valid_key = bool(
+            self.api_key and self.api_key != "your_gemini_api_key_here"
+        )
+        if HAS_GENAI and (genai is not None) and has_valid_key:
             try:
-                from google import genai
                 self.client = genai.Client(api_key=self.api_key)
             except Exception as e:
                 print(f"[Warning] Gemini SDK 초기화 실패: {e}")
@@ -73,7 +83,7 @@ class ReceiptParser:
                 f"영수증 이미지 파일을 찾을 수 없습니다: {image_path}"
             )
 
-        if not self.client:
+        if self.client is None:
             if use_mock_if_no_key:
                 print("[Info] 샘플 Mock 영수증 데이터로 처리합니다.")
                 return self._generate_mock_result()
@@ -93,6 +103,7 @@ class ReceiptParser:
         prompt = self.DEFAULT_PROMPT.format(today=today_str)
 
         try:
+            assert self.client is not None
             interaction = self.client.interactions.create(
                 model="gemini-3.8-flash",
                 input=[
@@ -110,7 +121,7 @@ class ReceiptParser:
                 }
             )
 
-            result_json = interaction.output_text
+            result_json = interaction.output_text or "{}"
             parsed = ReceiptParseResult.model_validate_json(result_json)
             return parsed
 

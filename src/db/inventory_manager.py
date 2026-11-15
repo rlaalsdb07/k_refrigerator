@@ -103,19 +103,17 @@ class InventoryManager:
 
             merged = False
             for existing in current_items:
-                if (
-                    existing["name"] == item.name and
-                    existing["expiry_date"] == expiry_date
-                ):
-                    existing["quantity"] += float(item.quantity)
-                    existing["days_left"] = (
-                        self.calculator.calculate_days_left(
-                            expiry_date, reference_date
+                if existing["name"] == item.name:
+                    if existing["expiry_date"] == expiry_date:
+                        existing["quantity"] += float(item.quantity)
+                        existing["days_left"] = (
+                            self.calculator.calculate_days_left(
+                                expiry_date, reference_date
+                            )
                         )
-                    )
-                    newly_added.append(existing)
-                    merged = True
-                    break
+                        newly_added.append(existing)
+                        merged = True
+                        break
 
             if not merged:
                 now_str = datetime.now().strftime('%Y%m%d%H%M%S')
@@ -234,11 +232,13 @@ class InventoryManager:
     ) -> List[Dict[str, Any]]:
         """D-day 기준 유통기한 임박 품목 조회 (D-3)"""
         items = self.load_inventory(reference_date)
-        expiring = [
-            item for item in items
-            if not item.get("is_seasoning", False) and
-            0 <= item.get("days_left", 999) <= days
-        ]
+        expiring = []
+        for item in items:
+            if item.get("is_seasoning", False):
+                continue
+            days_left = item.get("days_left", 999)
+            if 0 <= days_left <= days:
+                expiring.append(item)
         expiring.sort(key=lambda x: x.get("days_left", 999))
         return expiring
 
@@ -254,10 +254,11 @@ class InventoryManager:
     ) -> List[str]:
         """추천 가능한 식재료 명칭 목록 (팀원 C 연계)"""
         items = self.load_inventory(reference_date)
-        available = list({
-            item["name"] for item in items
-            if not item.get("is_seasoning", False) and
-            item.get("quantity", 0) > 0 and
-            item.get("days_left", 0) >= 0
-        })
-        return sorted(available)
+        available = set()
+        for item in items:
+            if not item.get("is_seasoning", False):
+                qty = item.get("quantity", 0)
+                days_left = item.get("days_left", 0)
+                if qty > 0 and days_left >= 0:
+                    available.add(item["name"])
+        return sorted(list(available))

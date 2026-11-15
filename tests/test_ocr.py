@@ -2,10 +2,15 @@
 Gemini Vision OCR 영수증 파서 유닛 테스트
 """
 import os
+import sys
 import tempfile
 
-from src.ocr.parser import ReceiptParser
-from src.ocr.schema import ReceiptParseResult
+_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if _ROOT not in sys.path:
+    sys.path.insert(0, _ROOT)
+
+from src.ocr.parser import ReceiptParser  # noqa: E402
+from src.ocr.schema import ReceiptParseResult  # noqa: E402
 
 
 def test_mock_parser():
