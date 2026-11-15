@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-11-16T00:45:52.864925",
+  "last_updated": "2026-11-16T00:47:42.846731",
   "items": [
     {
       "id": "item_20261115230237_e2269d",
@@ -103,7 +103,7 @@
     {
       "id": "item_20261116004552_e177c3",
       "name": "양파",
-      "quantity": 1.0,
+      "quantity": 2.0,
       "unit": "봉",
       "category": "채소",
       "purchase_date": "2017-11-08",
@@ -114,7 +114,7 @@
     {
       "id": "item_20261116004552_812650",
       "name": "대파",
-      "quantity": 1.0,
+      "quantity": 2.0,
       "unit": "봉",
       "category": "채소",
       "purchase_date": "2017-11-08",
@@ -125,7 +125,7 @@
     {
       "id": "item_20261116004552_43be9d",
       "name": "당근",
-      "quantity": 1.0,
+      "quantity": 2.0,
       "unit": "개",
       "category": "채소",
       "purchase_date": "2017-11-08",
@@ -136,7 +136,7 @@
     {
       "id": "item_20261116004552_8bea35",
       "name": "모둠쌈",
-      "quantity": 1.0,
+      "quantity": 2.0,
       "unit": "팩",
       "category": "채소",
       "purchase_date": "2017-11-08",
@@ -147,7 +147,7 @@
     {
       "id": "item_20261116004552_7c3d48",
       "name": "콩나물",
-      "quantity": 1.0,
+      "quantity": 2.0,
       "unit": "봉",
       "category": "채소",
       "purchase_date": "2017-11-08",
@@ -158,7 +158,7 @@
     {
       "id": "item_20261116004552_52c6c6",
       "name": "청양고추",
-      "quantity": 1.0,
+      "quantity": 2.0,
       "unit": "봉",
       "category": "채소",
       "purchase_date": "2017-11-08",
@@ -169,7 +169,7 @@
     {
       "id": "item_20261116004552_3d85cc",
       "name": "소고기 등심",
-      "quantity": 1.0,
+      "quantity": 2.0,
       "unit": "팩",
       "category": "육류",
       "purchase_date": "2017-11-08",
@@ -202,6 +202,50 @@
     {
       "id": "item_20261116004552_7abff0",
       "name": "카스 맥주",
+      "quantity": 1.0,
+      "unit": "팩",
+      "category": "기타",
+      "purchase_date": "2017-11-08",
+      "expiry_date": "2017-11-22",
+      "is_seasoning": false,
+      "days_left": -3281
+    },
+    {
+      "id": "item_20261116004742_c1c367",
+      "name": "요거트",
+      "quantity": 1.0,
+      "unit": "팩",
+      "category": "유제품",
+      "purchase_date": "2017-11-08",
+      "expiry_date": "2017-11-18",
+      "is_seasoning": false,
+      "days_left": -3285
+    },
+    {
+      "id": "item_20261116004742_0d95a7",
+      "name": "계란",
+      "quantity": 1.0,
+      "unit": "팩",
+      "category": "계란",
+      "purchase_date": "2017-11-08",
+      "expiry_date": "2017-11-29",
+      "is_seasoning": false,
+      "days_left": -3274
+    },
+    {
+      "id": "item_20261116004742_00a598",
+      "name": "라면",
+      "quantity": 1.0,
+      "unit": "개",
+      "category": "가공식품",
+      "purchase_date": "2017-11-08",
+      "expiry_date": "2018-01-07",
+      "is_seasoning": false,
+      "days_left": -3235
+    },
+    {
+      "id": "item_20261116004742_0b3cfe",
+      "name": "맥주",
       "quantity": 1.0,
       "unit": "팩",
       "category": "기타",
