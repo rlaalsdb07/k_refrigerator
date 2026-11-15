@@ -10,8 +10,9 @@ from typing import Dict, Any, Optional
 class ExpiryCalculator:
     """식재료 카테고리 및 명칭 기반 유통기한 산출 엔진"""
 
+    _DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "data")
     DEFAULT_CONFIG_PATH = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "..", "..", "data", "default_expiry.json")
+        os.path.join(_DATA_DIR, "default_expiry.json")
     )
 
     def __init__(self, config_path: Optional[str] = None):
@@ -23,7 +24,6 @@ class ExpiryCalculator:
         if os.path.exists(self.config_path):
             with open(self.config_path, "r", encoding="utf-8") as f:
                 return json.load(f)
-        # 파일이 없을 경우 기본 fallback 설정
         return {
             "categories": {
                 "채소": 7, "육류": 5, "닭고기": 3, "수산물": 3,
@@ -33,7 +33,9 @@ class ExpiryCalculator:
             "item_specific_days": {
                 "삼겹살": 5, "소고기": 5, "우유": 10, "두부": 5, "양파": 21
             },
-            "seasonings": ["소금", "설탕", "간장", "고추장", "된장", "후추", "참기름", "식용유"]
+            "seasonings": [
+                "소금", "설탕", "간장", "고추장", "된장", "후추", "참기름", "식용유"
+            ]
         }
 
     def is_seasoning(self, item_name: str) -> bool:
@@ -49,7 +51,7 @@ class ExpiryCalculator:
         """품목명 및 카테고리에 따른 보관 가능 일수 조회"""
         clean_name = item_name.strip()
         item_specific = self.config.get("item_specific_days", {})
-        
+
         # 1. 특정 식재료명 직접 매칭
         for key, days in item_specific.items():
             if key in clean_name:
@@ -80,7 +82,10 @@ class ExpiryCalculator:
             purchase_date = datetime.now().date()
         else:
             try:
-                purchase_date = datetime.strptime(purchase_date_str.strip(), "%Y-%m-%d").date()
+                date_text = purchase_date_str.strip()
+                purchase_date = datetime.strptime(
+                    date_text, "%Y-%m-%d"
+                ).date()
             except ValueError:
                 purchase_date = datetime.now().date()
 
@@ -89,7 +94,10 @@ class ExpiryCalculator:
         return expiry_date.strftime("%Y-%m-%d")
 
     @staticmethod
-    def calculate_days_left(expiry_date_str: str, reference_date_str: Optional[str] = None) -> int:
+    def calculate_days_left(
+        expiry_date_str: str,
+        reference_date_str: Optional[str] = None
+    ) -> int:
         """
         유통기한까지 남은 일수(D-day) 계산
         - 양수: D-day (예: 3이면 D-3)
@@ -97,13 +105,17 @@ class ExpiryCalculator:
         - 음수: 기한 초과
         """
         try:
-            expiry_date = datetime.strptime(expiry_date_str.strip(), "%Y-%m-%d").date()
+            expiry_date = datetime.strptime(
+                expiry_date_str.strip(), "%Y-%m-%d"
+            ).date()
         except ValueError:
             return 999
 
         if reference_date_str:
             try:
-                ref_date = datetime.strptime(reference_date_str.strip(), "%Y-%m-%d").date()
+                ref_date = datetime.strptime(
+                    reference_date_str.strip(), "%Y-%m-%d"
+                ).date()
             except ValueError:
                 ref_date = datetime.now().date()
         else:
@@ -111,4 +123,3 @@ class ExpiryCalculator:
 
         delta = expiry_date - ref_date
         return delta.days
-

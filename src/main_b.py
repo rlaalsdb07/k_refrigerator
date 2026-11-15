@@ -2,17 +2,16 @@
 팀원 B (OCR & 스마트 재고 DB) 메인 실행 및 테스트 CLI 스크립트
 K-Refriger: 영수증 스캔 입고, 유통기한 자동 산출, 요리 차감(기본 양념 제외)
 """
+import argparse
 import os
 import sys
-import argparse
-from datetime import datetime
 
 # 프로젝트 루트를 sys.path에 추가
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, _ROOT)
 
-from src.ocr.parser import ReceiptParser
-from src.db.inventory_manager import InventoryManager
-from src.db.expiry_calculator import ExpiryCalculator
+from src.ocr.parser import ReceiptParser  # noqa: E402
+from src.db.inventory_manager import InventoryManager  # noqa: E402
 
 
 def print_banner():
@@ -28,7 +27,11 @@ def display_inventory(items, title="현재 냉장고 재고 목록"):
         return
 
     print("-" * 75)
-    print(f"{'식재료명':<12} {'수량':<8} {'카테고리':<10} {'구매일':<12} {'유통기한':<12} {'상태(D-Day)':<10}")
+    header = (
+        f"{'식재료명':<12} {'수량':<8} {'카테고리':<10} "
+        f"{'구매일':<12} {'유통기한':<12} {'상태(D-Day)':<10}"
+    )
+    print(header)
     print("-" * 75)
     for it in items:
         days = it.get("days_left", 0)
@@ -45,7 +48,12 @@ def display_inventory(items, title="현재 냉장고 재고 목록"):
         name_display = f"{it['name']}{seasoning_tag}"
         qty_display = f"{it['quantity']} {it.get('unit', '')}"
 
-        print(f"{name_display:<12} {qty_display:<8} {it.get('category',''):<10} {it.get('purchase_date',''):<12} {it.get('expiry_date',''):<12} {status:<10}")
+        row = (
+            f"{name_display:<12} {qty_display:<8} "
+            f"{it.get('category', ''):<10} {it.get('purchase_date', ''):<12} "
+            f"{it.get('expiry_date', ''):<12} {status:<10}"
+        )
+        print(row)
     print("-" * 75)
 
 
@@ -57,10 +65,13 @@ def run_demo():
     parser = ReceiptParser()
 
     print("Step 1. 영수증 사진 스캔 및 자동 OCR 파싱 시뮬레이션")
-    # 샘플 이미지 경로 또는 mock 사용
-    sample_img = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", "receipts", "sample_receipt.jpg"))
+    receipts_dir = os.path.join(
+        os.path.dirname(__file__), "..", "data", "receipts"
+    )
+    sample_img = os.path.abspath(
+        os.path.join(receipts_dir, "sample_receipt.jpg")
+    )
     if not os.path.exists(sample_img):
-        # 데모용 placeholder 생성
         with open(sample_img, "wb") as f:
             f.write(b"SAMPLE RECEIPT IMAGE PLACEHOLDER")
 
@@ -70,7 +81,10 @@ def run_demo():
     print(f"  🧾 파싱된 품목 수: {len(receipt.items)}개")
     for idx, item in enumerate(receipt.items, 1):
         season_tag = "(기본 양념)" if item.is_seasoning else "(일반 식재료)"
-        print(f"    {idx}. {item.name} ({item.quantity}{item.unit}) - {item.category} {season_tag}")
+        print(
+            f"    {idx}. {item.name} ({item.quantity}{item.unit}) "
+            f"- {item.category} {season_tag}"
+        )
 
     print("\nStep 2. 스마트 재고 DB (inventory.json) 입고 및 유통기한 산출")
     added = manager.add_items_from_receipt(receipt)
@@ -84,11 +98,15 @@ def run_demo():
     if expiring:
         print(f"  ⚠️ 유통기한 임박(D-3 이내) 품목 {len(expiring)}개 발견:")
         for exp in expiring:
-            print(f"     - {exp['name']}: 잔여 {exp['quantity']}{exp.get('unit','')} (만료일: {exp['expiry_date']}, D-{exp['days_left']})")
+            unit_str = exp.get('unit', '')
+            print(
+                f"     - {exp['name']}: 잔여 {exp['quantity']}{unit_str} "
+                f"(만료일: {exp['expiry_date']}, D-{exp['days_left']})"
+            )
     else:
         print("  ✅ D-3 이내 임박한 품목이 없습니다.")
 
-    print("\nStep 4. 요리 실행 및 재고 차감 테스트 (PPT 핵심 기능: 기본 양념 제외 차감)")
+    print("\nStep 4. 요리 실행 및 재고 차감 테스트 (기본 양념 제외 차감)")
     dish = "돼지고기 김치찌개"
     cook_ingredients = {
         "삼겹살": 1.0,      # 일반 식재료 -> 차감 대상
@@ -117,14 +135,24 @@ def run_demo():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="K-Refriger 스마트 냉장고 OCR & 재고 관리 시스템 (팀원 B)")
-    parser.add_argument("--demo", action="store_true", help="전체 파이프라인 데모 실행")
-    parser.add_argument("--list", action="store_true", help="현재 재고 목록 조회")
-    parser.add_argument("--scan", type=str, help="영수증 이미지 파일 경로를 입력받아 OCR 및 입고 처리")
-    parser.add_argument("--cook", type=str, help="요리명 (예: '돼지고기 김치찌개')")
-    parser.add_argument("--ingredients", type=str, help="사용할 재료 목록 (형식: '재료명:수량,재료명:수량' 예: '삼겹살:1,양파:1,간장:1')")
-    parser.add_argument("--check-d3", action="store_true", help="D-3 이내 유통기한 임박 식재료 조회")
-    parser.add_argument("--available", action="store_true", help="현재 요리 가능한 식재료 명칭 목록 조회 (팀원 C 연계)")
+    parser = argparse.ArgumentParser(
+        description="K-Refriger 스마트 냉장고 OCR & 재고 관리 시스템 (팀원 B)"
+    )
+    parser.add_argument("--demo", action="store_true", help="전체 데모 실행")
+    parser.add_argument("--list", action="store_true", help="재고 목록 조회")
+    parser.add_argument(
+        "--scan", type=str, help="영수증 이미지 경로 입력받아 입고 처리"
+    )
+    parser.add_argument("--cook", type=str, help="요리명 (예: '김치찌개')")
+    parser.add_argument(
+        "--ingredients", type=str, help="사용할 재료 목록 (예: '삼겹살:1,간장:1')"
+    )
+    parser.add_argument(
+        "--check-d3", action="store_true", help="D-3 이내 유통기한 임박 식재료 조회"
+    )
+    parser.add_argument(
+        "--available", action="store_true", help="가용 식재료 목록 조회"
+    )
 
     args = parser.parse_args()
     manager = InventoryManager()
@@ -141,7 +169,9 @@ def main():
         print_banner()
         receipt_parser = ReceiptParser()
         print(f"📸 영수증 스캔 중: {args.scan}")
-        receipt = receipt_parser.parse_receipt_image(args.scan, use_mock_if_no_key=True)
+        receipt = receipt_parser.parse_receipt_image(
+            args.scan, use_mock_if_no_key=True
+        )
         print(f"✅ 파싱 완료: {receipt.store_name} ({receipt.purchase_date})")
         added = manager.add_items_from_receipt(receipt)
         print(f"✨ {len(added)}개 품목이 재고 DB에 입고되었습니다.")
@@ -149,9 +179,8 @@ def main():
 
     elif args.cook:
         if not args.ingredients:
-            print("❌ 오류: --ingredients 인자가 필요합니다. (예: --ingredients '삼겹살:1,진간장:1')")
+            print("❌ 오류: --ingredients 인자가 필요합니다.")
             return
-        # 파싱
         ing_dict = {}
         for pair in args.ingredients.split(","):
             if ":" in pair:
@@ -175,14 +204,17 @@ def main():
         expiring = manager.get_expiring_items(days=3)
         print(f"⚠️ [D-3 임박 식재료] ({len(expiring)}개)")
         for item in expiring:
-            print(f"  - {item['name']}: {item['quantity']}{item.get('unit','')} (만료일: {item['expiry_date']}, D-{item['days_left']})")
+            unit_str = item.get('unit', '')
+            print(
+                f"  - {item['name']}: {item['quantity']}{unit_str} "
+                f"(만료일: {item['expiry_date']}, D-{item['days_left']})"
+            )
 
     elif args.available:
         avail = manager.get_available_ingredients()
-        print(f"🥦 [가용 식재료 목록 (팀원 C 연계용)]")
+        print("🥦 [가용 식재료 목록 (팀원 C 연계용)]")
         print(", ".join(avail))
 
 
 if __name__ == "__main__":
     main()
-

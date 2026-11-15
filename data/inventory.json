@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-11-15T23:46:11.711577",
+  "last_updated": "2026-11-16T00:13:03.748312",
   "items": [
     {
       "id": "item_20261115230237_e2269d",
@@ -10,18 +10,18 @@
       "purchase_date": "2026-11-15",
       "expiry_date": "2026-12-06",
       "is_seasoning": false,
-      "days_left": 21
+      "days_left": 20
     },
     {
       "id": "item_20261115230237_dc4e73",
       "name": "두부",
-      "quantity": 2.0,
+      "quantity": 1.0,
       "unit": "모",
       "category": "두부",
       "purchase_date": "2026-11-15",
       "expiry_date": "2026-11-20",
       "is_seasoning": false,
-      "days_left": 5
+      "days_left": 4
     },
     {
       "id": "item_20261115230237_01a06c",
@@ -32,7 +32,7 @@
       "purchase_date": "2026-11-15",
       "expiry_date": "2027-05-14",
       "is_seasoning": true,
-      "days_left": 180
+      "days_left": 179
     },
     {
       "id": "item_20261115230237_a5d8fe",
@@ -42,6 +42,50 @@
       "category": "양념/조미료",
       "purchase_date": "2026-11-15",
       "expiry_date": "2027-05-14",
+      "is_seasoning": true,
+      "days_left": 179
+    },
+    {
+      "id": "item_20261116001303_ad2e24",
+      "name": "양파",
+      "quantity": 1.0,
+      "unit": "망",
+      "category": "채소",
+      "purchase_date": "2026-11-16",
+      "expiry_date": "2026-12-07",
+      "is_seasoning": false,
+      "days_left": 21
+    },
+    {
+      "id": "item_20261116001303_969201",
+      "name": "두부",
+      "quantity": 2.0,
+      "unit": "모",
+      "category": "두부",
+      "purchase_date": "2026-11-16",
+      "expiry_date": "2026-11-21",
+      "is_seasoning": false,
+      "days_left": 5
+    },
+    {
+      "id": "item_20261116001303_720652",
+      "name": "진간장",
+      "quantity": 1.0,
+      "unit": "병",
+      "category": "양념/조미료",
+      "purchase_date": "2026-11-16",
+      "expiry_date": "2027-05-15",
+      "is_seasoning": true,
+      "days_left": 180
+    },
+    {
+      "id": "item_20261116001303_9ee5df",
+      "name": "고춧가루",
+      "quantity": 1.0,
+      "unit": "봉",
+      "category": "양념/조미료",
+      "purchase_date": "2026-11-16",
+      "expiry_date": "2027-05-15",
       "is_seasoning": true,
       "days_left": 180
     }

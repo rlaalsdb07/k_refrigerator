@@ -1,34 +1,36 @@
 """
 Gemini Vision API 기반 영수증 OCR 및 식재료 정형화 파서
 """
-import os
-import mimetypes
 import base64
-import json
+import mimetypes
+import os
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional
+
+from .schema import ReceiptParseResult, ReceiptItem
+
+# .env 로드 시도 (python-dotenv 미설치 환경 대비 fallback 포함)
 try:
     from dotenv import load_dotenv
     load_dotenv()
 except ImportError:
     pass
 
-# .env 수동 로드 fallback (python-dotenv 미설치 환경 대비)
-env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
-if os.path.exists(env_path):
+_ENV_PATH = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..", ".env")
+)
+if os.path.exists(_ENV_PATH):
     try:
-        with open(env_path, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith("#") and "=" in line:
-                    k, v = line.split("=", 1)
-                    k, v = k.strip(), v.strip()
-                    if k and k not in os.environ:
-                        os.environ[k] = v
+        with open(_ENV_PATH, "r", encoding="utf-8") as _f:
+            for _line in _f:
+                _line = _line.strip()
+                if _line and not _line.startswith("#") and "=" in _line:
+                    _k, _v = _line.split("=", 1)
+                    _k, _v = _k.strip(), _v.strip()
+                    if _k and _k not in os.environ:
+                        os.environ[_k] = _v
     except Exception:
         pass
-
-from .schema import ReceiptParseResult, ReceiptItem
 
 
 class ReceiptParser:
@@ -39,16 +41,16 @@ class ReceiptParser:
 주어진 영수증 사진을 정밀하게 분석하여 식재료 정보를 구조화된 JSON 데이터로 추출하세요.
 
 [추출 규칙]
-1. purchase_date: 영수증에 표시된 결제/구매일자를 YYYY-MM-DD 형식으로 추출하세요. (식별 불가 시 오늘 날짜: {today})
+1. purchase_date: 결제/구매일자를 YYYY-MM-DD 형식으로 추출하세요. (식별 불가 시 오늘 날짜: {today})
 2. store_name: 마트, 슈퍼마켓, 편의점 상호명 (예: 이마트, 홈플러스, GS25 등)
 3. items:
-   - 구매한 품목 중 **식재료 및 식음료**만 추출합니다. (종량제 봉투, 세제, 칫솔 등 공산품/비식품은 반드시 제외)
-   - name: 식재료의 대표 표준 명칭 (예: '[행사] 제주 삼겹살 600g' -> '삼겹살', '친환경 깐양파 1봉' -> '양파')
+   - 구매한 품목 중 **식재료 및 식음료**만 추출합니다. (봉투, 세제 등 비식품 제외)
+   - name: 식재료의 대표 표준 명칭 (예: '[행사] 제주 삼겹살 600g' -> '삼겹살')
    - raw_name: 영수증에 인쇄된 원본 텍스트
    - quantity: 구매 수량 (기본 1.0)
    - unit: 단위 (개, 팩, 봉, g, ml 등)
-   - category: 채소, 육류, 닭고기, 수산물, 유제품, 계란, 두부, 과일, 가공식품, 양념/조미료, 기타 중 하나
-   - is_seasoning: 소금, 설탕, 간장, 고추장, 된장, 후추, 참기름, 식용유, 식초 등 기본 양념/조미료 여부 (True/False)
+   - category: 채소, 육류, 닭고기, 수산물, 유제품, 계란, 두부, 과일, 가공식품, 양념/조미료, 기타
+   - is_seasoning: 기본 양념/조미료 여부 (True/False)
 4. total_amount: 총 결제 금액(숫자)
 """
 
@@ -62,21 +64,23 @@ class ReceiptParser:
             except Exception as e:
                 print(f"[Warning] Gemini SDK 초기화 실패: {e}")
 
-    def parse_receipt_image(self, image_path: str, use_mock_if_no_key: bool = True) -> ReceiptParseResult:
-        """
-        영수증 이미지 경로를 받아 Gemini Vision으로 파싱
-        """
+    def parse_receipt_image(
+        self, image_path: str, use_mock_if_no_key: bool = True
+    ) -> ReceiptParseResult:
+        """영수증 이미지 경로를 받아 Gemini Vision으로 파싱"""
         if not os.path.exists(image_path):
-            raise FileNotFoundError(f"영수증 이미지 파일을 찾을 수 없습니다: {image_path}")
+            raise FileNotFoundError(
+                f"영수증 이미지 파일을 찾을 수 없습니다: {image_path}"
+            )
 
-        # API 클라이언트가 없거나 키가 설정되지 않은 경우 Mock 파싱 지원
         if not self.client:
             if use_mock_if_no_key:
-                print("[Info] GEMINI_API_KEY가 설정되지 않아 샘플 Mock 영수증 데이터로 처리합니다.")
+                print("[Info] 샘플 Mock 영수증 데이터로 처리합니다.")
                 return self._generate_mock_result()
-            raise ValueError("GEMINI_API_KEY가 설정되지 않았습니다. .env 파일을 확인해주세요.")
+            raise ValueError(
+                "GEMINI_API_KEY가 설정되지 않았습니다. .env 파일을 확인해주세요."
+            )
 
-        # MIME 타입 확인
         mime_type, _ = mimetypes.guess_type(image_path)
         if not mime_type or not mime_type.startswith("image/"):
             mime_type = "image/jpeg"
@@ -118,7 +122,7 @@ class ReceiptParser:
             raise
 
     def _generate_mock_result(self) -> ReceiptParseResult:
-        """테스트 및 API 키 미등록 시 사용할 현실적인 샘플 영수증 데이터"""
+        """테스트 및 API 키 미등록 시 사용할 샘플 영수증 데이터"""
         today_str = datetime.now().strftime("%Y-%m-%d")
         return ReceiptParseResult(
             store_name="이마트 성수점",
