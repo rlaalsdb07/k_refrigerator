@@ -1,7 +1,6 @@
 """
 Gemini Vision API 기반 영수증 OCR 및 식재료 정형화 파서
 """
-import base64
 import mimetypes
 import os
 from datetime import datetime
@@ -12,9 +11,11 @@ from .schema import ReceiptParseResult, ReceiptItem
 # google-genai SDK 로드
 try:
     from google import genai
+    from google.genai import types
     HAS_GENAI = True
 except ImportError:
     genai = None  # type: ignore
+    types = None  # type: ignore
     HAS_GENAI = False
 
 # .env 로드 시도
@@ -49,16 +50,18 @@ class ReceiptParser:
 주어진 영수증 사진을 정밀하게 분석하여 식재료 정보를 구조화된 JSON 데이터로 추출하세요.
 
 [추출 규칙]
-1. purchase_date: 결제/구매일자를 YYYY-MM-DD 형식으로 추출하세요. (식별 불가 시 오늘 날짜: {today})
+1. purchase_date: 결제/구매일자를 YYYY-MM-DD 형식으로 추출하세요.
+   (영수증에 명시된 날짜를 추출하되, 식별 불가 시: {today})
 2. store_name: 마트, 슈퍼마켓, 편의점 상호명 (예: 이마트, 홈플러스, GS25 등)
 3. items:
-   - 구매한 품목 중 **식재료 및 식음료**만 추출합니다. (봉투, 세제 등 비식품 제외)
-   - name: 식재료의 대표 표준 명칭 (예: '[행사] 제주 삼겹살 600g' -> '삼겹살')
+   - 구매한 품목 중 **식재료 및 식음료만** 추출합니다.
+   - 냄비, 국자, 스푼, 면봉, 휴지, 세제, 차량용품(불스원샷 등) 같은 **비식품/공산품은 반드시 제외**하세요!
+   - name: 식재료의 대표 표준 명칭 (예: '[행사] 제주 삼겹살 600g' -> '삼겹살', '친환경복주머니양파' -> '양파')
    - raw_name: 영수증에 인쇄된 원본 텍스트
    - quantity: 구매 수량 (기본 1.0)
-   - unit: 단위 (개, 팩, 봉, g, ml 등)
+   - unit: 단위 (개, 팩, 봉, g, ml, 단, 모, 캔 등)
    - category: 채소, 육류, 닭고기, 수산물, 유제품, 계란, 두부, 과일, 가공식품, 양념/조미료, 기타
-   - is_seasoning: 기본 양념/조미료 여부 (True/False)
+   - is_seasoning: 소금, 설탕, 간장, 고추장, 된장, 후추, 참기름, 식용유 등 기본 양념 여부 (True/False)
 4. total_amount: 총 결제 금액(숫자)
 """
 
@@ -97,31 +100,27 @@ class ReceiptParser:
 
         with open(image_path, "rb") as f:
             image_bytes = f.read()
-        base64_data = base64.b64encode(image_bytes).decode("utf-8")
 
         today_str = datetime.now().strftime("%Y-%m-%d")
         prompt = self.DEFAULT_PROMPT.format(today=today_str)
 
         try:
-            assert self.client is not None
-            interaction = self.client.interactions.create(
-                model="gemini-3.8-flash",
-                input=[
-                    {"type": "text", "text": prompt},
-                    {
-                        "type": "image",
-                        "data": base64_data,
-                        "mime_type": mime_type
-                    }
+            assert types is not None
+            response = self.client.models.generate_content(
+                model="gemini-3.5-flash",
+                contents=[
+                    prompt,
+                    types.Part.from_bytes(
+                        data=image_bytes, mime_type=mime_type
+                    )
                 ],
-                response_format={
-                    "type": "text",
-                    "mime_type": "application/json",
-                    "schema": ReceiptParseResult.model_json_schema()
-                }
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    response_schema=ReceiptParseResult
+                )
             )
 
-            result_json = interaction.output_text or "{}"
+            result_json = response.text or "{}"
             parsed = ReceiptParseResult.model_validate_json(result_json)
             return parsed
 
