@@ -45,6 +45,43 @@
 
 ---
 
+## 🔔 3-2. 팀원 D 상세 구현 내역 (텔레그램 알림)
+
+### 1) 텔레그램 봇 연동 (`src/notify/`)
+- `telegram.py`: Telegram Bot API 클라이언트 (표준 라이브러리만 사용, 4096자 초과 시 자동 분할)
+- `messages.py`: D-3 임박 알림, 레시피 카드, 영수증 입고/요리 차감 결과 메시지 포맷 (HTML)
+- `__init__.py`: 팀원용 함수 `notify_expiry`, `notify_recipes`, `notify_receipt`, `notify_cooked`
+
+### 2) D-3 유통기한 임박 알림
+- 팀원 B의 `get_expiring_items(days=3)`, `get_expired_items()`로 조회 (기본 양념 제외)
+- GitHub Actions 러너는 UTC이므로 **한국 날짜(KST) 기준**으로 D-day 계산
+- `.github/workflows/d3-alert.yml`: 매일 **08:00 KST** 자동 전송 (+ `workflow_dispatch` 수동 실행)
+- `data/recipes.json`이 있으면 레시피 카드도 함께 전송 (팀원 C 연계)
+
+### 3) 설정
+1. 텔레그램 **@BotFather** → `/newbot` → 토큰 발급
+2. `.env`에 `TELEGRAM_BOT_TOKEN` 입력 후 봇에게 아무 메시지 전송 → `python src/main_d.py --chat-id`로 채팅 ID 확인
+3. `.env`에 `TELEGRAM_CHAT_ID` 입력
+4. GitHub → Settings → Secrets and variables → Actions 에 같은 이름으로 두 값 등록
+
+### 4) 실행
+```bash
+python src/main_d.py --test                 # 연결 테스트
+python src/main_d.py --expiry               # D-3 임박 알림
+python src/main_d.py --expiry --dry-run     # 전송 없이 화면 출력
+python src/main_d.py --recipes recipes.json # 레시피 카드
+```
+
+### 5) 다른 팀원 코드에서 호출
+```python
+from src.notify import notify_receipt, notify_cooked, notify_recipes
+notify_receipt(manager.add_items_from_receipt(receipt))   # 팀원 B: 입고 후
+notify_cooked(manager.deduct_for_dish(dish, ingredients)) # 팀원 B: 요리 차감 후
+notify_recipes(recipes)  # 팀원 C: [{title, cuisine, time, uses_expiring, ingredients, steps}]
+```
+
+---
+
 ## 📁 4. 디렉토리 구조
 
 ```text
@@ -62,8 +99,13 @@ K-Refriger/
 │   │   ├── __init__.py
 │   │   ├── expiry_calculator.py# 유통기한 및 D-day, 기본양념 판별
 │   │   └── inventory_manager.py# 재고 입고/차감/조회 핵심 매니저
+│   ├── notify/
+│   │   ├── __init__.py         # 알림 함수 (notify_expiry 등)
+│   │   ├── telegram.py         # Telegram Bot API 클라이언트
+│   │   └── messages.py         # 알림/레시피 카드 메시지 포맷
 │   ├── __init__.py
-│   └── main_b.py               # 팀원 B 통합 실행 CLI
+│   ├── main_b.py               # 팀원 B 통합 실행 CLI
+│   └── main_d.py               # 팀원 D 텔레그램 알림 CLI
 ├── tests/
 │   ├── test_inventory.py       # 재고 관리 및 차감 로직 단위 테스트
 │   └── test_ocr.py             # OCR 파서 단위 테스트
