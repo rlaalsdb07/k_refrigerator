@@ -16,10 +16,10 @@
 
 | 역할 | 담당 영역 | 주요 구현 및 책임 |
 | :--- | :--- | :--- |
-| **팀원 A (팀장)** | CI/CD 파이프라인 | GitHub Actions 구축, Cron 스케줄러, `workflow_dispatch`, Auto Git Commit & Push 관리 |
-| **팀원 B (본 파트)** | **OCR & 스마트 재고 DB** | **Gemini Vision 영수증 인식, `inventory.json` 관리, 유통기한 산출, 요리 실행 시 차감(기본 양념 제외)** |
-| **팀원 C** | AI 식단 엔진 | 프롬프트 설계, 남은 재고 기반 맞춤형 레시피 동적 생성, `cuisine` 옵션 확장 |
-| **팀원 D** | 알림 & PM | Discord Webhook / Telegram Bot 연동, D-3 유통기한 임박 알림 전송, 일정 관리 |
+| **김민유 (팀장)** | CI/CD 파이프라인 | GitHub Actions 구축, Cron 스케줄러, `workflow_dispatch`, Auto Git Commit & Push 관리 |
+| **전민성** | **OCR & 스마트 재고 DB** | **Gemini Vision 영수증 인식, `inventory.json` 관리, 유통기한 산출, 요리 실행 시 차감(기본 양념 제외)** |
+| **김민재** | AI 식단 엔진 | 프롬프트 설계, 남은 재고 기반 맞춤형 레시피 동적 생성, `cuisine` 옵션 확장 |
+| **마흐디에** | 알림 & PM | Discord Webhook / Telegram Bot 연동, D-3 유통기한 임박 알림 전송, 일정 관리 |
 
 ---
 
