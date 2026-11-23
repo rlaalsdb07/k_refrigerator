@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-11-23T19:19:08.204489",
+  "last_updated": "2026-11-23T19:46:29.808502",
   "items": [
     {
       "id": "item_20261115230237_e2269d",
@@ -341,6 +341,160 @@
       "expiry_date": "2027-01-20",
       "is_seasoning": false,
       "days_left": 58
+    },
+    {
+      "id": "item_20261123194629_a88ed8",
+      "name": "처음처럼",
+      "quantity": 2.0,
+      "unit": "병",
+      "category": "간식",
+      "purchase_date": "2026-10-31",
+      "expiry_date": "2026-12-30",
+      "is_seasoning": false,
+      "days_left": 37
+    },
+    {
+      "id": "item_20261123194629_1d9c92",
+      "name": "어묵",
+      "quantity": 1.0,
+      "unit": "팩",
+      "category": "가공식품",
+      "purchase_date": "2026-10-31",
+      "expiry_date": "2026-12-30",
+      "is_seasoning": false,
+      "days_left": 37
+    },
+    {
+      "id": "item_20261123194629_6e88d9",
+      "name": "한우 채끝",
+      "quantity": 1.0,
+      "unit": "팩",
+      "category": "육류",
+      "purchase_date": "2026-10-31",
+      "expiry_date": "2026-11-05",
+      "is_seasoning": false,
+      "days_left": -18
+    },
+    {
+      "id": "item_20261123194629_673367",
+      "name": "한우 등심",
+      "quantity": 1.0,
+      "unit": "팩",
+      "category": "육류",
+      "purchase_date": "2026-10-31",
+      "expiry_date": "2026-11-05",
+      "is_seasoning": false,
+      "days_left": -18
+    },
+    {
+      "id": "item_20261123194629_35b15b",
+      "name": "호빵",
+      "quantity": 1.0,
+      "unit": "봉",
+      "category": "간식",
+      "purchase_date": "2026-10-31",
+      "expiry_date": "2026-11-05",
+      "is_seasoning": false,
+      "days_left": -18
+    },
+    {
+      "id": "item_20261123194629_d0031a",
+      "name": "돈까스",
+      "quantity": 2.0,
+      "unit": "팩",
+      "category": "가공식품",
+      "purchase_date": "2026-10-31",
+      "expiry_date": "2026-12-30",
+      "is_seasoning": true,
+      "days_left": 37
+    },
+    {
+      "id": "item_20261123194629_be816a",
+      "name": "햄",
+      "quantity": 1.0,
+      "unit": "개",
+      "category": "가공식품",
+      "purchase_date": "2026-10-31",
+      "expiry_date": "2026-12-30",
+      "is_seasoning": false,
+      "days_left": 37
+    },
+    {
+      "id": "item_20261123194629_1172ab",
+      "name": "빵",
+      "quantity": 1.0,
+      "unit": "개",
+      "category": "간식",
+      "purchase_date": "2026-10-31",
+      "expiry_date": "2026-11-05",
+      "is_seasoning": false,
+      "days_left": -18
+    },
+    {
+      "id": "item_20261123194629_6c692c",
+      "name": "콜라",
+      "quantity": 1.0,
+      "unit": "캔",
+      "category": "간식",
+      "purchase_date": "2026-10-31",
+      "expiry_date": "2027-04-29",
+      "is_seasoning": false,
+      "days_left": 157
+    },
+    {
+      "id": "item_20261123194629_93f712",
+      "name": "포스틱",
+      "quantity": 1.0,
+      "unit": "봉",
+      "category": "간식",
+      "purchase_date": "2026-10-31",
+      "expiry_date": "2026-12-30",
+      "is_seasoning": false,
+      "days_left": 37
+    },
+    {
+      "id": "item_20261123194629_9ddc70",
+      "name": "치킨",
+      "quantity": 3.0,
+      "unit": "팩",
+      "category": "가공식품",
+      "purchase_date": "2026-10-31",
+      "expiry_date": "2026-12-30",
+      "is_seasoning": false,
+      "days_left": 37
+    },
+    {
+      "id": "item_20261123194629_c7deb6",
+      "name": "오이",
+      "quantity": 1.0,
+      "unit": "개",
+      "category": "채소",
+      "purchase_date": "2026-10-31",
+      "expiry_date": "2026-11-07",
+      "is_seasoning": false,
+      "days_left": -16
+    },
+    {
+      "id": "item_20261123194629_e386b3",
+      "name": "잼",
+      "quantity": 2.0,
+      "unit": "개",
+      "category": "가공식품",
+      "purchase_date": "2026-10-31",
+      "expiry_date": "2026-12-30",
+      "is_seasoning": false,
+      "days_left": 37
+    },
+    {
+      "id": "item_20261123194629_8ee443",
+      "name": "김치",
+      "quantity": 1.0,
+      "unit": "팩",
+      "category": "가공식품",
+      "purchase_date": "2026-10-31",
+      "expiry_date": "2027-01-29",
+      "is_seasoning": false,
+      "days_left": 67
     }
   ]
 }
