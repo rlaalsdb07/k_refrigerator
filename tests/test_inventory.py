@@ -42,7 +42,21 @@ def test_expiry_calculator():
     assert calc.is_seasoning("삼겹살") is False
     assert calc.is_seasoning("양파") is False
 
-    # 3. D-day 계산
+    # 3. 간식 판별
+    assert calc.is_snack("초코파이") is True
+    assert calc.is_snack("콜라") is True
+    assert calc.is_snack("포키") is True
+    assert calc.is_snack("맥주") is True
+    assert calc.is_snack("삼겹살") is False
+
+    # 4. 비식품(이상한 것들) 쳐내기 판별
+    assert calc.is_non_food("스푼") is True
+    assert calc.is_non_food("스텐국자") is True
+    assert calc.is_non_food("원형면봉") is True
+    assert calc.is_non_food("불스원샷") is True
+    assert calc.is_non_food("양파") is False
+
+    # 5. D-day 계산
     assert calc.calculate_days_left("2026-11-18", "2026-11-15") == 3
     assert calc.calculate_days_left("2026-11-15", "2026-11-15") == 0
     assert calc.calculate_days_left("2026-11-10", "2026-11-15") == -5
@@ -119,3 +133,54 @@ def test_get_expiring_items(temp_db):
     names = [i["name"] for i in expiring]
     assert "닭가슴살" in names
     assert "양파" not in names
+
+
+def test_snack_separation_and_non_food_filtering(temp_db):
+    """간식 파트 분리 및 비식품 쳐내기 검증"""
+    manager = InventoryManager(db_path=temp_db)
+
+    receipt = ReceiptParseResult(
+        store_name="편의점 & 마트",
+        purchase_date="2026-11-15",
+        items=[
+            ReceiptItem(name="양파", quantity=1.0, category="채소"),
+            ReceiptItem(name="삼겹살", quantity=1.0, category="육류"),
+            ReceiptItem(name="초코파이", quantity=1.0, category="간식"),
+            ReceiptItem(name="콜라", quantity=1.0, category="가공식품"),
+            ReceiptItem(name="진간장", quantity=1.0, is_seasoning=True),
+            ReceiptItem(name="원형면봉200개", quantity=1.0, category="기타"),
+            ReceiptItem(name="스텐국자", quantity=1.0, category="기타"),
+        ]
+    )
+
+    manager.add_items_from_receipt(receipt, reference_date="2026-11-15")
+    items = manager.load_inventory(reference_date="2026-11-15")
+
+    item_names = [it["name"] for it in items]
+
+    # 1. 비식품(원형면봉, 스텐국자)은 쳐내서 등록되지 않음
+    assert "원형면봉200개" not in item_names
+    assert "스텐국자" not in item_names
+
+    # 2. 식재료 vs 간식 vs 양념 정확히 분리
+    cooking = manager.get_cooking_ingredients(reference_date="2026-11-15")
+    cooking_names = [it["name"] for it in cooking]
+    assert "양파" in cooking_names
+    assert "삼겹살" in cooking_names
+    assert "초코파이" not in cooking_names
+    assert "콜라" not in cooking_names
+    assert "진간장" not in cooking_names
+
+    snacks = manager.get_snack_items(reference_date="2026-11-15")
+    snack_names = [it["name"] for it in snacks]
+    assert "초코파이" in snack_names
+    assert "콜라" in snack_names
+    assert "양파" not in snack_names
+
+    # 3. 레시피 추천용 가용 식재료에는 순수 요리 식재료만 포함 (식재료 파트만!)
+    available = manager.get_available_ingredients(reference_date="2026-11-15")
+    assert "양파" in available
+    assert "삼겹살" in available
+    assert "초코파이" not in available
+    assert "콜라" not in available
+    assert "진간장" not in available

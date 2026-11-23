@@ -3,7 +3,8 @@
 - inventory.json 로드 및 저장
 - 영수증 품목 자동 입고 및 유통기한 산출
 - 요리 실행 시 재고 자동 차감 (기본 양념 제외)
-- D-3 유통기한 임박 식재료 조회
+- 식재료(요리용)와 간식/음료 분리 관리
+- 비식품(이상한 것들) 100% 쳐내기(제외)
 """
 import json
 import os
@@ -50,7 +51,7 @@ class InventoryManager:
     def load_inventory(
         self, reference_date: Optional[str] = None
     ) -> List[Dict[str, Any]]:
-        """inventory.json 로드 및 남은 유통기한(days_left) 실시간 갱신"""
+        """inventory.json 로드 및 데이터 정제(간식 분류, 비식품 쳐내기, 유통기한 갱신)"""
         try:
             with open(self.db_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
@@ -58,7 +59,24 @@ class InventoryManager:
             data = {"last_updated": datetime.now().isoformat(), "items": []}
 
         items = data.get("items", [])
+        cleaned_items = []
+
         for item in items:
+            name = item.get("name", "")
+            raw = item.get("raw_name", "")
+
+            # 1. 이상한 것들 (비식품/생활잡화) 쳐내기
+            if self.calculator.is_non_food(name, raw):
+                continue
+
+            # 2. 간식류 자동 재분류
+            if self.calculator.is_snack(name, item.get("category", "")):
+                item["category"] = "간식"
+                item["is_seasoning"] = False
+            elif self.calculator.is_seasoning(name):
+                item["is_seasoning"] = True
+
+            # 3. 유통기한 남은 일수 계산
             expiry_date = item.get("expiry_date", "")
             if expiry_date:
                 item["days_left"] = self.calculator.calculate_days_left(
@@ -67,7 +85,9 @@ class InventoryManager:
             else:
                 item["days_left"] = 999
 
-        return items
+            cleaned_items.append(item)
+
+        return cleaned_items
 
     def save_inventory(self, items: List[Dict[str, Any]]):
         """변경된 재고 목록을 inventory.json에 저장"""
@@ -91,14 +111,24 @@ class InventoryManager:
         newly_added = []
 
         for item in receipt.items:
+            # 1. 이상한 것들 (비식품 잡화) 쳐내기
+            if self.calculator.is_non_food(item.name, item.raw_name or ""):
+                print(f"🚫 [입고 쳐내기] 비식품 제외: {item.name}")
+                continue
+
+            # 2. 간식류 및 양념 여부 자동 보정
+            if self.calculator.is_snack(item.name, item.category):
+                item.category = "간식"
+                is_seasoning = False
+            elif item.is_seasoning or self.calculator.is_seasoning(item.name):
+                is_seasoning = True
+            else:
+                is_seasoning = False
+
             expiry_date = self.calculator.calculate_expiry_date(
                 item_name=item.name,
                 category=item.category,
                 purchase_date_str=purchase_date
-            )
-
-            is_seasoning = (
-                item.is_seasoning or self.calculator.is_seasoning(item.name)
             )
 
             merged = False
@@ -252,13 +282,67 @@ class InventoryManager:
     def get_available_ingredients(
         self, reference_date: Optional[str] = None
     ) -> List[str]:
-        """추천 가능한 식재료 명칭 목록 (팀원 C 연계)"""
+        """
+        추천 가능한 요리용 식재료 명칭 목록 (간식 및 기본 양념 제외, 팀원 C 연계)
+        - 식재료 파트만 있도록 간식(과자, 음료, 빵, 주류 등)은 엄격히 제외
+        """
         items = self.load_inventory(reference_date)
         available = set()
         for item in items:
-            if not item.get("is_seasoning", False):
-                qty = item.get("quantity", 0)
-                days_left = item.get("days_left", 0)
-                if qty > 0 and days_left >= 0:
-                    available.add(item["name"])
+            name = item.get("name", "")
+            cat = item.get("category", "")
+
+            # 기본 양념 제외
+            if item.get("is_seasoning", False):
+                continue
+            # 간식/음료 제외 (요리 레시피 식재료에서 배제)
+            if cat == "간식" or self.calculator.is_snack(name, cat):
+                continue
+            # 비식품 제외
+            if self.calculator.is_non_food(name, item.get("raw_name", "")):
+                continue
+
+            qty = item.get("quantity", 0)
+            days_left = item.get("days_left", 0)
+            if qty > 0 and days_left >= 0:
+                available.add(name)
+
         return sorted(list(available))
+
+    def get_cooking_ingredients(
+        self, reference_date: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """순수 요리용 식재료 목록 조회 (간식 및 양념 제외)"""
+        items = self.load_inventory(reference_date)
+        result = []
+        for it in items:
+            name = it.get("name", "")
+            cat = it.get("category", "")
+            if it.get("is_seasoning", False):
+                continue
+            if cat == "간식" or self.calculator.is_snack(name, cat):
+                continue
+            if self.calculator.is_non_food(name, it.get("raw_name", "")):
+                continue
+            result.append(it)
+        return result
+
+    def get_snack_items(
+        self, reference_date: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """간식 파트 품목 목록 조회 (과자, 스낵, 빵, 음료, 주류 등)"""
+        items = self.load_inventory(reference_date)
+        result = []
+        for it in items:
+            name = it.get("name", "")
+            cat = it.get("category", "")
+            if cat == "간식" or self.calculator.is_snack(name, cat):
+                result.append(it)
+        return result
+
+    def get_seasoning_items(
+        self, reference_date: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """기본 양념/조미료 목록 조회"""
+        items = self.load_inventory(reference_date)
+        return [it for it in items if it.get("is_seasoning", False)]

@@ -1,6 +1,6 @@
 """
 팀원 B (OCR & 스마트 재고 DB) 메인 실행 및 테스트 CLI 스크립트
-K-Refriger: 영수증 스캔 입고, 유통기한 자동 산출, 요리 차감(기본 양념 제외)
+K-Refriger: 영수증 스캔 입고, 유통기한 자동 산출, 요리 차감(기본 양념 제외), 간식 분리
 """
 import argparse
 import os
@@ -28,7 +28,7 @@ def display_inventory(items, title="현재 냉장고 재고 목록"):
 
     print("-" * 75)
     header = (
-        f"{'식재료명':<12} {'수량':<8} {'카테고리':<10} "
+        f"{'품목명 (구분)':<14} {'수량':<8} {'카테고리':<10} "
         f"{'구매일':<12} {'유통기한':<12} {'상태(D-Day)':<10}"
     )
     print(header)
@@ -44,12 +44,18 @@ def display_inventory(items, title="현재 냉장고 재고 목록"):
         else:
             status = f"✅ D-{days}"
 
-        seasoning_tag = " [양념]" if it.get("is_seasoning") else ""
-        name_display = f"{it['name']}{seasoning_tag}"
+        if it.get("is_seasoning"):
+            role_tag = " [양념]"
+        elif it.get("category") == "간식":
+            role_tag = " [간식]"
+        else:
+            role_tag = " [식재료]"
+
+        name_display = f"{it['name']}{role_tag}"
         qty_display = f"{it['quantity']} {it.get('unit', '')}"
 
         row = (
-            f"{name_display:<12} {qty_display:<8} "
+            f"{name_display:<14} {qty_display:<8} "
             f"{it.get('category', ''):<10} {it.get('purchase_date', ''):<12} "
             f"{it.get('expiry_date', ''):<12} {status:<10}"
         )
@@ -80,10 +86,15 @@ def run_demo():
     print(f"  📅 구매일자: {receipt.purchase_date}")
     print(f"  🧾 파싱된 품목 수: {len(receipt.items)}개")
     for idx, item in enumerate(receipt.items, 1):
-        season_tag = "(기본 양념)" if item.is_seasoning else "(일반 식재료)"
+        if item.is_seasoning:
+            tag = "(기본 양념)"
+        elif item.category == "간식":
+            tag = "(🍪 간식 파트)"
+        else:
+            tag = "(🥦 요리 식재료)"
         print(
             f"    {idx}. {item.name} ({item.quantity}{item.unit}) "
-            f"- {item.category} {season_tag}"
+            f"- {item.category} {tag}"
         )
 
     print("\nStep 2. 스마트 재고 DB (inventory.json) 입고 및 유통기한 산출")
@@ -93,7 +104,13 @@ def run_demo():
     items = manager.load_inventory()
     display_inventory(items, "영수증 입고 후 냉장고 재고 현황")
 
-    print("\nStep 3. D-3 유통기한 임박 품목 조회 (팀원 D 알림 및 팀원 C 식단 연계용)")
+    print("\nStep 3. 식재료 vs 간식 파트 분리 현황")
+    cook_list = manager.get_cooking_ingredients()
+    snack_list = manager.get_snack_items()
+    print(f"  🥦 요리용 식재료: {[it['name'] for it in cook_list]}")
+    print(f"  🍪 간식 파트: {[it['name'] for it in snack_list]}")
+
+    print("\nStep 4. D-3 유통기한 임박 품목 조회 (팀원 D 알림 및 팀원 C 연계)")
     expiring = manager.get_expiring_items(days=3)
     if expiring:
         print(f"  ⚠️ 유통기한 임박(D-3 이내) 품목 {len(expiring)}개 발견:")
@@ -106,7 +123,7 @@ def run_demo():
     else:
         print("  ✅ D-3 이내 임박한 품목이 없습니다.")
 
-    print("\nStep 4. 요리 실행 및 재고 차감 테스트 (기본 양념 제외 차감)")
+    print("\nStep 5. 요리 실행 및 재고 차감 테스트 (기본 양념 제외 차감)")
     dish = "돼지고기 김치찌개"
     cook_ingredients = {
         "삼겹살": 1.0,      # 일반 식재료 -> 차감 대상
@@ -139,7 +156,13 @@ def main():
         description="K-Refriger 스마트 냉장고 OCR & 재고 관리 시스템 (팀원 B)"
     )
     parser.add_argument("--demo", action="store_true", help="전체 데모 실행")
-    parser.add_argument("--list", action="store_true", help="재고 목록 조회")
+    parser.add_argument("--list", action="store_true", help="전체 재고 목록 조회")
+    parser.add_argument(
+        "--snacks", action="store_true", help="간식/음료 목록만 조회"
+    )
+    parser.add_argument(
+        "--cooking", action="store_true", help="요리용 식재료 목록만 조회"
+    )
     parser.add_argument(
         "--scan", type=str, help="영수증 이미지 경로 입력받아 입고 처리"
     )
@@ -164,6 +187,14 @@ def main():
     if args.list:
         items = manager.load_inventory()
         display_inventory(items)
+
+    elif args.snacks:
+        snacks = manager.get_snack_items()
+        display_inventory(snacks, title="🍪 간식·음료 목록")
+
+    elif args.cooking:
+        cooking = manager.get_cooking_ingredients()
+        display_inventory(cooking, title="🥦 요리용 식재료 목록")
 
     elif args.scan:
         print_banner()
@@ -212,7 +243,7 @@ def main():
 
     elif args.available:
         avail = manager.get_available_ingredients()
-        print("🥦 [가용 식재료 목록 (팀원 C 연계용)]")
+        print("🥦 [가용 식재료 목록 (간식 제외, 팀원 C 연계용)]")
         print(", ".join(avail))
 
 

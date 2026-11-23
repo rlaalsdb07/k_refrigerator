@@ -25,7 +25,7 @@ except Exception:
 if IMPORT_ERROR_MSG:
     st.error("🚨 프로젝트 모듈을 불러오는 중 오류가 발생했습니다.")
     st.code(IMPORT_ERROR_MSG, language="python")
-    st.info("터미널이 `k_refrigerator-main` 폴더 위치에서 실행되었는지 확인해 주세요.")
+    st.info("터미널이 프로젝트 루트 위치에서 실행되었는지 확인해 주세요.")
     st.stop()
 
 if "parsed_receipt" not in st.session_state:
@@ -98,6 +98,8 @@ st.title("🧊 K-Refriger<Action> 스마트 냉장고 대시보드")
 try:
     manager = InventoryManager()
     all_items = manager.load_inventory()
+    cooking_ingredients = manager.get_cooking_ingredients()
+    snack_items = manager.get_snack_items()
     expiring_items = manager.get_expiring_items(days=3)
     expired_items = [it for it in all_items if int(it.get("days_left", 0)) < 0]
     available_ingredients = manager.get_available_ingredients()
@@ -106,16 +108,17 @@ except Exception:
     st.code(traceback.format_exc(), language="python")
     st.stop()
 
-kpi1, kpi2, kpi3, kpi4 = st.columns(4)
-kpi1.metric("📦 전체 보유 식재료", f"{len(all_items)}종")
-kpi2.metric("⚠️ D-3 유통기한 임박", f"{len(expiring_items)}종")
-kpi3.metric("🚨 유통기한 만료", f"{len(expired_items)}종")
-kpi4.metric("🥦 요리 가능 주재료", f"{len(available_ingredients)}종")
+kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
+kpi1.metric("📦 전체 보유 품목", f"{len(all_items)}종")
+kpi2.metric("🥦 요리용 식재료", f"{len(cooking_ingredients)}종")
+kpi3.metric("🍪 간식·음료", f"{len(snack_items)}종")
+kpi4.metric("⚠️ D-3 유통기한 임박", f"{len(expiring_items)}종")
+kpi5.metric("🚨 유통기한 만료", f"{len(expired_items)}종")
 
 st.divider()
 
 tab_inventory, tab_upload, tab_recipe = st.tabs([
-    "📦 보유 식재료 & 수량 현황",
+    "📦 보유 식재료 & 간식 현황",
     "📸 영수증 사진 업로드 (자동 입고)",
     "🍳 AI 레시피 추천 & 텔레그램 공유",
 ])
@@ -124,26 +127,32 @@ tab_inventory, tab_upload, tab_recipe = st.tabs([
 with tab_inventory:
     col_title, col_btn = st.columns([2, 1])
     with col_title:
-        st.subheader("현재 냉장고 속 식재료와 남은 양")
+        st.subheader("냉장고 속 식재료 및 간식 관리")
     with col_btn:
         if st.button("📲 현재 재고/임박 알림 텔레그램 보내기", type="primary", use_container_width=True):
             lines = ["🧊 <b>[K-Refriger 냉장고 재고 & 유통기한 리포트]</b>", ""]
             if expiring_items:
-                lines.append("⚠️ <b>D-3 이내 임박 식재료</b>")
+                lines.append("⚠️ <b>D-3 이내 임박 품목</b>")
                 for it in expiring_items:
                     lines.append(
                         f"• {it.get('name')} : <b>{it.get('quantity')}{it.get('unit', '')}</b> (D-{it.get('days_left')})"
                     )
                 lines.append("")
-            if all_items:
-                lines.append("📦 <b>전체 보유 식재료 현황</b>")
-                for it in all_items:
-                    if it.get("is_seasoning"):
-                        continue
+            if cooking_ingredients:
+                lines.append("🥦 <b>요리용 식재료 현황</b>")
+                for it in cooking_ingredients:
                     lines.append(
                         f"• {it.get('name')} : {it.get('quantity')}{it.get('unit', '')} (~{it.get('expiry_date', '')})"
                     )
-            else:
+                lines.append("")
+            if snack_items:
+                lines.append("🍪 <b>간식·음료 현황</b>")
+                for it in snack_items:
+                    lines.append(
+                        f"• {it.get('name')} : {it.get('quantity')}{it.get('unit', '')} (~{it.get('expiry_date', '')})"
+                    )
+                lines.append("")
+            if not all_items:
                 lines.append("현재 등록된 식재료가 없습니다.")
 
             ok, msg = send_telegram_message("\n".join(lines), dry_run=dry_run_mode)
@@ -152,33 +161,53 @@ with tab_inventory:
             else:
                 st.error(msg)
 
-    filtered_items = [
-        it for it in all_items
-        if not (hide_seasonings and it.get("is_seasoning"))
-    ]
+    view_mode = st.radio(
+        "파트 구분 선택",
+        ["전체 보기", "🥦 요리용 식재료 파트만", "🍪 간식 파트만 (스낵·음료)", "🧂 기본 양념 파트만"],
+        horizontal=True,
+    )
 
-    if not filtered_items:
-        st.info("현재 냉장고가 비어 있습니다. **[📸 영수증 사진 업로드]** 탭에서 영수증을 올려 식재료를 등록해 보세요!")
+    if view_mode == "🥦 요리용 식재료 파트만":
+        display_target = cooking_ingredients
+    elif view_mode == "🍪 간식 파트만 (스낵·음료)":
+        display_target = snack_items
+    elif view_mode == "🧂 기본 양념 파트만":
+        display_target = manager.get_seasoning_items()
+    else:
+        display_target = [
+            it for it in all_items
+            if not (hide_seasonings and it.get("is_seasoning"))
+        ]
+
+    if not display_target:
+        st.info("해당 구분에 등록된 품목이 없습니다.")
     else:
         rows = []
-        for it in filtered_items:
+        for it in display_target:
             days = int(it.get("days_left", 0))
             qty_str = f"{it.get('quantity', 0)} {it.get('unit', '')}".strip()
+            if it.get("is_seasoning"):
+                role_label = "🧂 기본 양념"
+            elif it.get("category") == "간식":
+                role_label = "🍪 간식·음료"
+            else:
+                role_label = "🥦 요리 식재료"
+
             rows.append({
-                "식재료명": it.get("name", ""),
+                "품목명": it.get("name", ""),
                 "보유 수량(양)": qty_str,
                 "카테고리": it.get("category", ""),
                 "구매일": it.get("purchase_date", ""),
                 "유통기한": it.get("expiry_date", ""),
                 "상태": get_status_badge(days),
-                "구분": "기본 양념" if it.get("is_seasoning") else "일반 식재료",
+                "구분": role_label,
             })
         st.dataframe(rows, use_container_width=True, hide_index=True)
 
 
 with tab_upload:
     st.subheader("영수증 사진 업로드 및 AI 자동 인식")
-    st.caption("마트·편의점 영수증 사진을 올리면 품목과 수량을 자동으로 추출해 냉장고에 넣어줍니다.")
+    st.caption("마트·편의점 영수증 사진을 올리면 식재료와 간식을 자동 분류하고, 비식품 잡화는 자동으로 쳐내어 냉장고에 등록합니다.")
 
     uploaded_file = st.file_uploader(
         "영수증 이미지 선택 (JPG, JPEG, PNG)",
@@ -190,14 +219,14 @@ with tab_upload:
     with left_col:
         if uploaded_file is not None:
             st.image(uploaded_file, caption="업로드된 영수증 사진", use_container_width=True)
-            if st.button("🔍 사진에서 식재료 추출하기", type="primary", use_container_width=True):
+            if st.button("🔍 사진에서 식재료/간식 추출하기", type="primary", use_container_width=True):
                 suffix = os.path.splitext(uploaded_file.name)[1] or ".jpg"
                 with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
                     tmp.write(uploaded_file.getbuffer())
                     tmp_path = tmp.name
 
                 try:
-                    with st.spinner("Gemini Vision AI가 영수증 속 식재료와 양을 분석 중입니다..."):
+                    with st.spinner("Gemini Vision AI가 식재료와 간식을 분류하고 비식품을 쳐내는 중입니다..."):
                         parser = ReceiptParser()
                         parsed = parser.parse_receipt_image(tmp_path, use_mock_if_no_key=True)
                         st.session_state.parsed_receipt = parsed
@@ -213,22 +242,29 @@ with tab_upload:
     with right_col:
         parsed = st.session_state.parsed_receipt
         if parsed is not None:
-            st.markdown("#### 인식된 식재료 및 수량 확인")
+            st.markdown("#### 인식된 품목 확인 (비식품은 자동 쳐내기 완료)")
             st.write(
                 f"**매장명:** {parsed.store_name or '미상'} | "
                 f"**구매일:** {parsed.purchase_date} | "
                 f"**결제금액:** {f'{parsed.total_amount:,}원' if parsed.total_amount else '미상'}"
             )
 
-            preview_data = [
-                {
-                    "식재료명": item.name,
+            preview_data = []
+            for item in parsed.items:
+                if item.is_seasoning:
+                    role_tag = "🧂 기본 양념"
+                elif item.category == "간식":
+                    role_tag = "🍪 간식·음료"
+                else:
+                    role_tag = "🥦 요리 식재료"
+
+                preview_data.append({
+                    "품목명": item.name,
                     "수량(양)": f"{item.quantity} {item.unit}".strip(),
                     "카테고리": item.category,
-                    "구분": "기본 양념" if item.is_seasoning else "일반 식재료",
-                }
-                for item in parsed.items
-            ]
+                    "구분": role_tag,
+                })
+
             st.dataframe(preview_data, use_container_width=True, hide_index=True)
 
             if st.button("📥 냉장고에 입고하고 텔레그램 알림 보내기", type="primary", use_container_width=True):
@@ -240,12 +276,13 @@ with tab_upload:
                         "",
                     ]
                     for it in added:
+                        cat_tag = "🍪간식" if it.get("category") == "간식" else "🥦식재료"
                         msg_lines.append(
-                            f"• {it.get('name')} : {it.get('quantity')}{it.get('unit', '')} (~{it.get('expiry_date', '')})"
+                            f"• [{cat_tag}] {it.get('name')} : {it.get('quantity')}{it.get('unit', '')} (~{it.get('expiry_date', '')})"
                         )
                     ok, tg_msg = send_telegram_message("\n".join(msg_lines), dry_run=dry_run_mode)
                     st.session_state.parsed_receipt = None
-                    st.success(f"{len(added)}개 식재료 입고 완료! ({tg_msg})")
+                    st.success(f"{len(added)}개 품목 입고 완료! ({tg_msg})")
                     st.rerun()
                 except Exception as e:
                     st.error(f"입고 처리 중 오류 발생: {e}")
@@ -253,11 +290,12 @@ with tab_upload:
 
 with tab_recipe:
     st.subheader("보유 식재료 기반 AI 맞춤 레시피 추천")
+    st.caption("간식(과자, 음료, 주류)과 양념은 제외하고, 순수 요리용 식재료만 기반으로 레시피를 구성합니다.")
 
     if available_ingredients:
-        st.write("**현재 냉장고 주재료:**", ", ".join(available_ingredients))
+        st.write("**현재 냉장고 요리용 식재료:**", ", ".join(available_ingredients))
     else:
-        st.warning("현재 냉장고에 주재료가 없습니다. 먼저 영수증 사진을 업로드해 식재료를 추가해 주세요.")
+        st.warning("현재 냉장고에 요리용 식재료가 없습니다. 먼저 영수증 사진을 업로드해 식재료를 추가해 주세요.")
 
     c1, c2, c3 = st.columns([1.2, 1, 1.5])
     with c1:
@@ -274,7 +312,7 @@ with tab_recipe:
             st.error("추천할 식재료가 부족합니다.")
         else:
             try:
-                with st.spinner(f"보유 재료로 만들 수 있는 [{cuisine_choice}] 레시피를 생성 중입니다..."):
+                with st.spinner(f"보유 식재료로 만들 수 있는 [{cuisine_choice}] 레시피를 생성 중입니다..."):
                     generator = RecipeGenerator()
                     recipes = generator.generate_recipes(
                         available_ingredients=available_ingredients,
