@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-11-16T00:47:42.846731",
+  "last_updated": "2026-11-23T18:28:02.967400",
   "items": [
     {
       "id": "item_20261115230237_e2269d",
@@ -10,7 +10,7 @@
       "purchase_date": "2026-11-15",
       "expiry_date": "2026-12-06",
       "is_seasoning": false,
-      "days_left": 20
+      "days_left": 13
     },
     {
       "id": "item_20261115230237_dc4e73",
@@ -21,7 +21,7 @@
       "purchase_date": "2026-11-15",
       "expiry_date": "2026-11-20",
       "is_seasoning": false,
-      "days_left": 4
+      "days_left": -3
     },
     {
       "id": "item_20261115230237_01a06c",
@@ -32,7 +32,7 @@
       "purchase_date": "2026-11-15",
       "expiry_date": "2027-05-14",
       "is_seasoning": true,
-      "days_left": 179
+      "days_left": 172
     },
     {
       "id": "item_20261115230237_a5d8fe",
@@ -43,7 +43,7 @@
       "purchase_date": "2026-11-15",
       "expiry_date": "2027-05-14",
       "is_seasoning": true,
-      "days_left": 179
+      "days_left": 172
     },
     {
       "id": "item_20261116001303_ad2e24",
@@ -54,7 +54,7 @@
       "purchase_date": "2026-11-16",
       "expiry_date": "2026-12-07",
       "is_seasoning": false,
-      "days_left": 21
+      "days_left": 14
     },
     {
       "id": "item_20261116001303_969201",
@@ -65,7 +65,7 @@
       "purchase_date": "2026-11-16",
       "expiry_date": "2026-11-21",
       "is_seasoning": false,
-      "days_left": 5
+      "days_left": -2
     },
     {
       "id": "item_20261116001303_720652",
@@ -76,7 +76,7 @@
       "purchase_date": "2026-11-16",
       "expiry_date": "2027-05-15",
       "is_seasoning": true,
-      "days_left": 180
+      "days_left": 173
     },
     {
       "id": "item_20261116001303_9ee5df",
@@ -87,7 +87,7 @@
       "purchase_date": "2026-11-16",
       "expiry_date": "2027-05-15",
       "is_seasoning": true,
-      "days_left": 180
+      "days_left": 173
     },
     {
       "id": "item_20261116004552_afb0e2",
@@ -98,7 +98,7 @@
       "purchase_date": "2017-11-08",
       "expiry_date": "2017-11-18",
       "is_seasoning": false,
-      "days_left": -3285
+      "days_left": -3292
     },
     {
       "id": "item_20261116004552_e177c3",
@@ -109,7 +109,7 @@
       "purchase_date": "2017-11-08",
       "expiry_date": "2017-11-29",
       "is_seasoning": false,
-      "days_left": -3274
+      "days_left": -3281
     },
     {
       "id": "item_20261116004552_812650",
@@ -120,7 +120,7 @@
       "purchase_date": "2017-11-08",
       "expiry_date": "2017-11-18",
       "is_seasoning": false,
-      "days_left": -3285
+      "days_left": -3292
     },
     {
       "id": "item_20261116004552_43be9d",
@@ -131,7 +131,7 @@
       "purchase_date": "2017-11-08",
       "expiry_date": "2017-11-15",
       "is_seasoning": false,
-      "days_left": -3288
+      "days_left": -3295
     },
     {
       "id": "item_20261116004552_8bea35",
@@ -142,7 +142,7 @@
       "purchase_date": "2017-11-08",
       "expiry_date": "2017-11-15",
       "is_seasoning": false,
-      "days_left": -3288
+      "days_left": -3295
     },
     {
       "id": "item_20261116004552_7c3d48",
@@ -153,7 +153,7 @@
       "purchase_date": "2017-11-08",
       "expiry_date": "2017-11-12",
       "is_seasoning": false,
-      "days_left": -3291
+      "days_left": -3298
     },
     {
       "id": "item_20261116004552_52c6c6",
@@ -164,7 +164,7 @@
       "purchase_date": "2017-11-08",
       "expiry_date": "2017-11-15",
       "is_seasoning": false,
-      "days_left": -3288
+      "days_left": -3295
     },
     {
       "id": "item_20261116004552_3d85cc",
@@ -175,7 +175,7 @@
       "purchase_date": "2017-11-08",
       "expiry_date": "2017-11-13",
       "is_seasoning": false,
-      "days_left": -3290
+      "days_left": -3297
     },
     {
       "id": "item_20261116004552_f126c3",
@@ -186,7 +186,7 @@
       "purchase_date": "2017-11-08",
       "expiry_date": "2017-11-29",
       "is_seasoning": false,
-      "days_left": -3274
+      "days_left": -3281
     },
     {
       "id": "item_20261116004552_b999ec",
@@ -197,7 +197,7 @@
       "purchase_date": "2017-11-08",
       "expiry_date": "2017-11-11",
       "is_seasoning": false,
-      "days_left": -3292
+      "days_left": -3299
     },
     {
       "id": "item_20261116004552_7abff0",
@@ -208,7 +208,7 @@
       "purchase_date": "2017-11-08",
       "expiry_date": "2017-11-22",
       "is_seasoning": false,
-      "days_left": -3281
+      "days_left": -3288
     },
     {
       "id": "item_20261116004742_c1c367",
@@ -219,7 +219,7 @@
       "purchase_date": "2017-11-08",
       "expiry_date": "2017-11-18",
       "is_seasoning": false,
-      "days_left": -3285
+      "days_left": -3292
     },
     {
       "id": "item_20261116004742_0d95a7",
@@ -230,7 +230,7 @@
       "purchase_date": "2017-11-08",
       "expiry_date": "2017-11-29",
       "is_seasoning": false,
-      "days_left": -3274
+      "days_left": -3281
     },
     {
       "id": "item_20261116004742_00a598",
@@ -241,7 +241,7 @@
       "purchase_date": "2017-11-08",
       "expiry_date": "2018-01-07",
       "is_seasoning": false,
-      "days_left": -3235
+      "days_left": -3242
     },
     {
       "id": "item_20261116004742_0b3cfe",
@@ -252,7 +252,106 @@
       "purchase_date": "2017-11-08",
       "expiry_date": "2017-11-22",
       "is_seasoning": false,
-      "days_left": -3281
+      "days_left": -3288
+    },
+    {
+      "id": "item_20261123182802_4c12fa",
+      "name": "콜라",
+      "quantity": 1.0,
+      "unit": "개",
+      "category": "가공식품",
+      "purchase_date": "2026-11-21",
+      "expiry_date": "2027-01-20",
+      "is_seasoning": false,
+      "days_left": 58
+    },
+    {
+      "id": "item_20261123182802_ef05a4",
+      "name": "꿀호떡",
+      "quantity": 2.0,
+      "unit": "개",
+      "category": "가공식품",
+      "purchase_date": "2026-11-21",
+      "expiry_date": "2027-01-20",
+      "is_seasoning": false,
+      "days_left": 58
+    },
+    {
+      "id": "item_20261123182802_947227",
+      "name": "단팥호빵",
+      "quantity": 1.0,
+      "unit": "개",
+      "category": "가공식품",
+      "purchase_date": "2026-11-21",
+      "expiry_date": "2027-01-20",
+      "is_seasoning": false,
+      "days_left": 58
+    },
+    {
+      "id": "item_20261123182802_f6d612",
+      "name": "단팥야채호빵",
+      "quantity": 1.0,
+      "unit": "개",
+      "category": "가공식품",
+      "purchase_date": "2026-11-21",
+      "expiry_date": "2027-01-20",
+      "is_seasoning": false,
+      "days_left": 58
+    },
+    {
+      "id": "item_20261123182802_cad287",
+      "name": "우유",
+      "quantity": 1.0,
+      "unit": "팩",
+      "category": "유제품",
+      "purchase_date": "2026-11-21",
+      "expiry_date": "2026-12-01",
+      "is_seasoning": false,
+      "days_left": 8
+    },
+    {
+      "id": "item_20261123182802_315d17",
+      "name": "포키",
+      "quantity": 2.0,
+      "unit": "개",
+      "category": "가공식품",
+      "purchase_date": "2026-11-21",
+      "expiry_date": "2027-01-20",
+      "is_seasoning": false,
+      "days_left": 58
+    },
+    {
+      "id": "item_20261123182802_aaf4df",
+      "name": "멸치칼국수",
+      "quantity": 1.0,
+      "unit": "개",
+      "category": "가공식품",
+      "purchase_date": "2026-11-21",
+      "expiry_date": "2027-01-20",
+      "is_seasoning": false,
+      "days_left": 58
+    },
+    {
+      "id": "item_20261123182802_f033d7",
+      "name": "사리곰탕면",
+      "quantity": 1.0,
+      "unit": "개",
+      "category": "가공식품",
+      "purchase_date": "2026-11-21",
+      "expiry_date": "2027-01-20",
+      "is_seasoning": false,
+      "days_left": 58
+    },
+    {
+      "id": "item_20261123182802_292784",
+      "name": "소주",
+      "quantity": 1.0,
+      "unit": "개",
+      "category": "가공식품",
+      "purchase_date": "2026-11-21",
+      "expiry_date": "2027-01-20",
+      "is_seasoning": false,
+      "days_left": 58
     }
   ]
 }
