@@ -4,7 +4,6 @@ AI 맞춤형 식단 생성 엔진 (Gemini API 기반 및 Mock Fallback 지원)
 - cuisine(한식, 양식, 중식, 일식 등) 옵션 확장 지원
 - Pydantic 기반 구조화된 출력 및 팀원 D 텔레그램 알림 인터페이스 완벽 호환
 """
-import json
 import os
 from typing import List, Dict, Any, Optional
 
@@ -12,7 +11,6 @@ from .schema import Recipe, RecipeResponse
 from .prompts import (
     RECIPE_SYSTEM_PROMPT,
     build_recipe_prompt,
-    SUPPORTED_CUISINES,
 )
 
 # google-genai SDK 로드 시도
@@ -185,7 +183,9 @@ class RecipeGenerator:
                     "cuisine": "한식",
                     "time": "15분",
                     "difficulty": "쉬움",
-                    "description": f"기본 양념으로 뚝딱 완성하는 감칠맛 넘치는 밥도둑 볶음 요리",
+                    "description": (
+                        "기본 양념으로 뚝딱 완성하는 감칠맛 넘치는 밥도둑 볶음 요리"
+                    ),
                     "uses_expiring": [exp for exp in exp_names if exp != all_ings[0]][:2] or exp_names[:1],
                     "ingredients": [
                         f"{all_ings[0]} 200g",
@@ -230,7 +230,7 @@ class RecipeGenerator:
                     "cuisine": "양식",
                     "time": "15분",
                     "difficulty": "쉬움",
-                    "description": f"가볍고 산뜻하게 즐기는 지중해풍 볶음 샐러드",
+                    "description": "가볍고 산뜻하게 즐기는 지중해풍 볶음 샐러드",
                     "uses_expiring": exp_names[:1],
                     "ingredients": [
                         f"{all_ings[0]} 150g",

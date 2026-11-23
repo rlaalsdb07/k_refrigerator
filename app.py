@@ -44,7 +44,9 @@ def get_status_badge(days_left: int) -> str:
     return f"✅ 여유 (D-{days_left})"
 
 
-def send_telegram_message(text: str, dry_run: bool = False) -> tuple[bool, str]:
+def send_telegram_message(
+    text: str, dry_run: bool = False
+) -> tuple[bool, str]:
     try:
         bot = TelegramBot(dry_run=dry_run)
         chunks = bot.send_message(text)
@@ -79,7 +81,8 @@ with st.sidebar:
 
     if st.button("🔔 텔레그램 연결 테스트 메시지 발송", use_container_width=True):
         ok, msg = send_telegram_message(
-            "🧊 <b>[K-Refriger&lt;Action&gt;]</b> 대시보드와 텔레그램 봇이 정상 연결되었습니다!",
+            "🧊 <b>[K-Refriger&lt;Action&gt;]</b> 대시보드와 "
+            "텔레그램 봇이 정상 연결되었습니다!",
             dry_run=dry_run_mode,
         )
         if ok:
@@ -129,33 +132,42 @@ with tab_inventory:
     with col_title:
         st.subheader("냉장고 속 식재료 및 간식 관리")
     with col_btn:
-        if st.button("📲 현재 재고/임박 알림 텔레그램 보내기", type="primary", use_container_width=True):
+        if st.button(
+            "📲 현재 재고/임박 알림 텔레그램 보내기",
+            type="primary",
+            use_container_width=True,
+        ):
             lines = ["🧊 <b>[K-Refriger 냉장고 재고 & 유통기한 리포트]</b>", ""]
             if expiring_items:
                 lines.append("⚠️ <b>D-3 이내 임박 품목</b>")
                 for it in expiring_items:
-                    lines.append(
-                        f"• {it.get('name')} : <b>{it.get('quantity')}{it.get('unit', '')}</b> (D-{it.get('days_left')})"
-                    )
+                    name = it.get('name')
+                    qty = f"{it.get('quantity')}{it.get('unit', '')}"
+                    days = it.get('days_left')
+                    lines.append(f"• {name} : <b>{qty}</b> (D-{days})")
                 lines.append("")
             if cooking_ingredients:
                 lines.append("🥦 <b>요리용 식재료 현황</b>")
                 for it in cooking_ingredients:
-                    lines.append(
-                        f"• {it.get('name')} : {it.get('quantity')}{it.get('unit', '')} (~{it.get('expiry_date', '')})"
-                    )
+                    name = it.get('name')
+                    qty = f"{it.get('quantity')}{it.get('unit', '')}"
+                    exp = it.get('expiry_date', '')
+                    lines.append(f"• {name} : {qty} (~{exp})")
                 lines.append("")
             if snack_items:
                 lines.append("🍪 <b>간식·음료 현황</b>")
                 for it in snack_items:
-                    lines.append(
-                        f"• {it.get('name')} : {it.get('quantity')}{it.get('unit', '')} (~{it.get('expiry_date', '')})"
-                    )
+                    name = it.get('name')
+                    qty = f"{it.get('quantity')}{it.get('unit', '')}"
+                    exp = it.get('expiry_date', '')
+                    lines.append(f"• {name} : {qty} (~{exp})")
                 lines.append("")
             if not all_items:
                 lines.append("현재 등록된 식재료가 없습니다.")
 
-            ok, msg = send_telegram_message("\n".join(lines), dry_run=dry_run_mode)
+            ok, msg = send_telegram_message(
+                "\n".join(lines), dry_run=dry_run_mode
+            )
             if ok:
                 st.success(msg)
             else:
@@ -163,7 +175,12 @@ with tab_inventory:
 
     view_mode = st.radio(
         "파트 구분 선택",
-        ["전체 보기", "🥦 요리용 식재료 파트만", "🍪 간식 파트만 (스낵·음료)", "🧂 기본 양념 파트만"],
+        [
+            "전체 보기",
+            "🥦 요리용 식재료 파트만",
+            "🍪 간식 파트만 (스낵·음료)",
+            "🧂 기본 양념 파트만",
+        ],
         horizontal=True,
     )
 
@@ -207,7 +224,10 @@ with tab_inventory:
 
 with tab_upload:
     st.subheader("영수증 사진 업로드 및 AI 자동 인식")
-    st.caption("마트·편의점 영수증 사진을 올리면 식재료와 간식을 자동 분류하고, 비식품 잡화는 자동으로 쳐내어 냉장고에 등록합니다.")
+    st.caption(
+        "마트·편의점 영수증 사진을 올리면 식재료와 간식을 자동 분류하고, "
+        "비식품 잡화는 자동으로 쳐내어 냉장고에 등록합니다."
+    )
 
     uploaded_file = st.file_uploader(
         "영수증 이미지 선택 (JPG, JPEG, PNG)",
@@ -218,19 +238,36 @@ with tab_upload:
 
     with left_col:
         if uploaded_file is not None:
-            st.image(uploaded_file, caption="업로드된 영수증 사진", use_container_width=True)
-            if st.button("🔍 사진에서 식재료/간식 추출하기", type="primary", use_container_width=True):
+            st.image(
+                uploaded_file,
+                caption="업로드된 영수증 사진",
+                use_container_width=True,
+            )
+            if st.button(
+                "🔍 사진에서 식재료/간식 추출하기",
+                type="primary",
+                use_container_width=True,
+            ):
                 suffix = os.path.splitext(uploaded_file.name)[1] or ".jpg"
-                with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+                with tempfile.NamedTemporaryFile(
+                    delete=False, suffix=suffix
+                ) as tmp:
                     tmp.write(uploaded_file.getbuffer())
                     tmp_path = tmp.name
 
                 try:
-                    with st.spinner("Gemini Vision AI가 식재료와 간식을 분류하고 비식품을 쳐내는 중입니다..."):
+                    with st.spinner(
+                        "Gemini Vision AI가 식재료와 간식을 분류하고 "
+                        "비식품을 쳐내는 중입니다..."
+                    ):
                         parser = ReceiptParser()
-                        parsed = parser.parse_receipt_image(tmp_path, use_mock_if_no_key=True)
+                        parsed = parser.parse_receipt_image(
+                            tmp_path, use_mock_if_no_key=True
+                        )
                         st.session_state.parsed_receipt = parsed
-                    st.success("추출 완료! 오른쪽 표를 확인하고 냉장고에 입고하세요.")
+                    st.success(
+                        "추출 완료! 오른쪽 표를 확인하고 냉장고에 입고하세요."
+                    )
                 except Exception as e:
                     st.error(f"영수증 분석 실패: {e}")
                 finally:
@@ -243,10 +280,14 @@ with tab_upload:
         parsed = st.session_state.parsed_receipt
         if parsed is not None:
             st.markdown("#### 인식된 품목 확인 (비식품은 자동 쳐내기 완료)")
+            amt_str = (
+                f"{parsed.total_amount:,}원"
+                if parsed.total_amount else "미상"
+            )
             st.write(
                 f"**매장명:** {parsed.store_name or '미상'} | "
                 f"**구매일:** {parsed.purchase_date} | "
-                f"**결제금액:** {f'{parsed.total_amount:,}원' if parsed.total_amount else '미상'}"
+                f"**결제금액:** {amt_str}"
             )
 
             preview_data = []
@@ -265,22 +306,35 @@ with tab_upload:
                     "구분": role_tag,
                 })
 
-            st.dataframe(preview_data, use_container_width=True, hide_index=True)
+            st.dataframe(
+                preview_data, use_container_width=True, hide_index=True
+            )
 
-            if st.button("📥 냉장고에 입고하고 텔레그램 알림 보내기", type="primary", use_container_width=True):
+            if st.button(
+                "📥 냉장고에 입고하고 텔레그램 알림 보내기",
+                type="primary",
+                use_container_width=True,
+            ):
                 try:
                     added = manager.add_items_from_receipt(parsed)
+                    store = parsed.store_name or '알 수 없음'
                     msg_lines = [
                         "🧾 <b>[영수증 자동 입고 완료]</b>",
-                        f"매장: {parsed.store_name or '알 수 없음'} ({parsed.purchase_date})",
+                        f"매장: {store} ({parsed.purchase_date})",
                         "",
                     ]
                     for it in added:
-                        cat_tag = "🍪간식" if it.get("category") == "간식" else "🥦식재료"
+                        is_snk = it.get("category") == "간식"
+                        cat_tag = "🍪간식" if is_snk else "🥦식재료"
+                        name = it.get('name')
+                        qty = f"{it.get('quantity')}{it.get('unit', '')}"
+                        exp = it.get('expiry_date', '')
                         msg_lines.append(
-                            f"• [{cat_tag}] {it.get('name')} : {it.get('quantity')}{it.get('unit', '')} (~{it.get('expiry_date', '')})"
+                            f"• [{cat_tag}] {name} : {qty} (~{exp})"
                         )
-                    ok, tg_msg = send_telegram_message("\n".join(msg_lines), dry_run=dry_run_mode)
+                    ok, tg_msg = send_telegram_message(
+                        "\n".join(msg_lines), dry_run=dry_run_mode
+                    )
                     st.session_state.parsed_receipt = None
                     st.success(f"{len(added)}개 품목 입고 완료! ({tg_msg})")
                     st.rerun()
@@ -290,29 +344,47 @@ with tab_upload:
 
 with tab_recipe:
     st.subheader("보유 식재료 기반 AI 맞춤 레시피 추천")
-    st.caption("간식(과자, 음료, 주류)과 양념은 제외하고, 순수 요리용 식재료만 기반으로 레시피를 구성합니다.")
+    st.caption(
+        "간식(과자, 음료, 주류)과 양념은 제외하고, "
+        "순수 요리용 식재료만 기반으로 레시피를 구성합니다."
+    )
 
     if available_ingredients:
-        st.write("**현재 냉장고 요리용 식재료:**", ", ".join(available_ingredients))
+        st.write(
+            "**현재 냉장고 요리용 식재료:**",
+            ", ".join(available_ingredients)
+        )
     else:
-        st.warning("현재 냉장고에 요리용 식재료가 없습니다. 먼저 영수증 사진을 업로드해 식재료를 추가해 주세요.")
+        st.warning(
+            "현재 냉장고에 요리용 식재료가 없습니다. "
+            "먼저 영수증 사진을 업로드해 식재료를 추가해 주세요."
+        )
 
     c1, c2, c3 = st.columns([1.2, 1, 1.5])
     with c1:
-        cuisine_choice = st.selectbox("원하는 요리 스타일", options=list(SUPPORTED_CUISINES), index=0)
+        cuisine_choice = st.selectbox(
+            "원하는 요리 스타일", options=list(SUPPORTED_CUISINES), index=0
+        )
     with c2:
-        recipe_num = st.number_input("추천 개수", min_value=1, max_value=5, value=2, step=1)
+        recipe_num = st.number_input(
+            "추천 개수", min_value=1, max_value=5, value=2, step=1
+        )
     with c3:
         st.write("")
         st.write("")
-        gen_btn = st.button("👨‍🍳 AI 레시피 추천받기", type="primary", use_container_width=True)
+        gen_btn = st.button(
+            "👨‍🍳 AI 레시피 추천받기", type="primary", use_container_width=True
+        )
 
     if gen_btn:
         if not available_ingredients:
             st.error("추천할 식재료가 부족합니다.")
         else:
             try:
-                with st.spinner(f"보유 식재료로 만들 수 있는 [{cuisine_choice}] 레시피를 생성 중입니다..."):
+                with st.spinner(
+                    f"보유 식재료로 만들 수 있는 [{cuisine_choice}] "
+                    "레시피를 생성 중입니다..."
+                ):
                     generator = RecipeGenerator()
                     recipes = generator.generate_recipes(
                         available_ingredients=available_ingredients,
@@ -332,10 +404,16 @@ with tab_recipe:
             with r_col1:
                 st.markdown(f"### 🍽️ {title}")
             with r_col2:
-                if st.button("📲 이 레시피 텔레그램으로 전송", key=f"tg_recipe_{idx}", use_container_width=True):
+                if st.button(
+                    "📲 이 레시피 텔레그램으로 전송",
+                    key=f"tg_recipe_{idx}",
+                    use_container_width=True,
+                ):
+                    c_style = recipe.get('cuisine', cuisine_choice)
+                    r_time = recipe.get('time', '-')
                     r_lines = [
                         f"🍳 <b>[AI 추천 레시피] {title}</b>",
-                        f"• 스타일: {recipe.get('cuisine', cuisine_choice)} | 조리시간: {recipe.get('time', '-')}",
+                        f"• 스타일: {c_style} | 조리시간: {r_time}",
                         "",
                         "<b>[필요 재료]</b>",
                     ]
@@ -346,7 +424,9 @@ with tab_recipe:
                     for step in recipe.get("steps", []):
                         r_lines.append(f"{step}")
 
-                    ok, tg_msg = send_telegram_message("\n".join(r_lines), dry_run=dry_run_mode)
+                    ok, tg_msg = send_telegram_message(
+                        "\n".join(r_lines), dry_run=dry_run_mode
+                    )
                     if ok:
                         st.success(tg_msg)
                     else:
@@ -365,7 +445,8 @@ with tab_recipe:
             if recipe.get("description"):
                 st.write(recipe["description"])
             if recipe.get("uses_expiring"):
-                st.info(f"♻️ 유통기한 임박 재료 활용: {', '.join(recipe['uses_expiring'])}")
+                exp_str = ", ".join(recipe["uses_expiring"])
+                st.info(f"♻️ 유통기한 임박 재료 활용: {exp_str}")
 
             col_ing, col_step = st.columns(2)
             with col_ing:
@@ -385,7 +466,9 @@ with tab_recipe:
             "사용한 식재료와 양 (쉼표로 구분)",
             placeholder="예: 양파:1, 계란:2",
         )
-        deduct_submit = st.form_submit_button("✅ 요리 완료 및 보유 수량 차감", type="primary")
+        deduct_submit = st.form_submit_button(
+            "✅ 요리 완료 및 보유 수량 차감", type="primary"
+        )
 
         if deduct_submit:
             if not dish_name.strip() or not used_items.strip():
@@ -407,10 +490,18 @@ with tab_recipe:
 
                 try:
                     res = manager.deduct_for_dish(dish_name.strip(), ing_map)
-                    msg_lines = [f"🍽️ <b>[{res.get('dish_name')}] 요리 완료 및 재고 차감</b>", ""]
+                    d_name = res.get('dish_name')
+                    msg_lines = [
+                        f"🍽️ <b>[{d_name}] 요리 완료 및 재고 차감</b>",
+                        "",
+                    ]
                     for d in res.get("deducted_items", []):
-                        msg_lines.append(f"➖ {d['name']} : {d['deducted_quantity']} 사용됨")
-                    ok, tg_msg = send_telegram_message("\n".join(msg_lines), dry_run=dry_run_mode)
+                        d_n = d['name']
+                        d_q = d['deducted_quantity']
+                        msg_lines.append(f"➖ {d_n} : {d_q} 사용됨")
+                    ok, tg_msg = send_telegram_message(
+                        "\n".join(msg_lines), dry_run=dry_run_mode
+                    )
                     st.success(f"보유 식재료 수량이 차감되었습니다! ({tg_msg})")
                     st.rerun()
                 except Exception as e:

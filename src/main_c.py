@@ -46,7 +46,7 @@ def display_recipes(recipes: list[dict], title: str = "추천 AI 레시피 목�
             print(f"  • 소  개: {r.get('description')}")
         if r.get("uses_expiring"):
             print(f"  • ♻️ 임박 재료 우선 활용: {', '.join(r.get('uses_expiring'))}")
-        
+
         print("\n  [필요 식재료 및 양념]")
         for ing in r.get("ingredients", []):
             print(f"    - {ing}")
@@ -73,7 +73,7 @@ def run_demo(cuisine: str = "한식", count: int = 2, save_path: str = None, not
     print(f"  📦 추천용 가용 식재료 (기본 양념 제외): {', '.join(available) if available else '없음'}")
     print(f"  ⚠️ D-3 임박 식재료: {len(expiring)}개 품목 감지")
     for exp in expiring:
-        print(f"     - {exp['name']} (잔여: {exp.get('quantity')}{exp.get('unit','')}, D-{exp.get('days_left')})")
+        print(f"     - {exp['name']} (잔여: {exp.get('quantity')}{exp.get('unit', '')}, D-{exp.get('days_left')})")
 
     print(f"\nStep 2. Gemini AI 레시피 생성 (카테고리: {cuisine}, 요청 수: {count}개)")
     generator = RecipeGenerator()

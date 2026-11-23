@@ -12,7 +12,7 @@ import google.generativeai as genai
 # 팀원 B와 팀원 D가 구현한 실제 모듈 임포트
 from src.ocr.parser import ReceiptParser
 from src.db.inventory_manager import InventoryManager
-from src.notify import notify_expiry, notify_recipes
+from src.notify import notify_expiry
 from src.notify.telegram import TelegramBot
 
 
@@ -36,16 +36,16 @@ def generate_ai_recipes_from_inventory(available_ingredients: list[str], expirin
 
     prompt = f"""
     당신은 스마트 냉장고 'K-Refriger<Action>'의 AI 셰프입니다.
-    
+
     [현재 냉장고 보유 식재료 (기본 양념 제외됨)]
     {', '.join(available_ingredients)}
-    
+
     [유통기한 임박(D-3 이내) 우선 소비 권장 재료]
     {', '.join(expiring_names) if expiring_names else '없음'}
-    
-    위 보유 식재료와 집에 있는 기본 양념(소금, 간장, 설탕, 마늘, 고추장 등)을 활용해 
+
+    위 보유 식재료와 집에 있는 기본 양념(소금, 간장, 설탕, 마늘, 고추장 등)을 활용해
     만들 수 있는 최적의 요리 레시피 2가지를 추천해 주세요. 특히 유통기한 임박 재료를 우선 활용하세요.
-    
+
     반드시 아래 JSON 배열 형식으로만 응답하세요:
     [
       {{
@@ -124,7 +124,7 @@ def run_cook_dish(dish_name: str, ingredients_str: str, dry_run: bool = False):
     res = manager.deduct_for_dish(dish_name, ing_dict)
 
     # 2. 결과 메시지 조립 후 팀원 D 텔레그램 봇으로 전송
-    lines = [f"🍳 *[요리 완료 & 재고 자동 업데이트]*", f"• 메뉴: *{res['dish_name']}*"]
+    lines = ["🍳 *[요리 완료 & 재고 자동 업데이트]*", f"• 메뉴: *{res['dish_name']}*"]
     if res["deducted_items"]:
         deducted_txt = ", ".join(f"{d['name']}(-{d['deducted_quantity']})" for d in res["deducted_items"])
         lines.append(f"• 📉 차감된 재고: {deducted_txt}")
@@ -156,7 +156,7 @@ def run_scan_receipt(receipt_path: str, dry_run: bool = False):
 
     # 2. 입고 결과 텔레그램 전송
     lines = [
-        f"🧾 *[영수증 자동 입고 완료]*",
+        "🧾 *[영수증 자동 입고 완료]*",
         f"• 구매처: {receipt.store_name} ({receipt.purchase_date})",
         f"• 등록 품목 ({len(added)}개): " + ", ".join(f"{item['name']}({item['quantity']})" for item in added),
     ]

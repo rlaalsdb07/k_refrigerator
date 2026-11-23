@@ -36,7 +36,7 @@ def expiry_alert(
     days: int = 3,
 ) -> str:
     """D-N 유통기한 임박 + 만료 품목 알림"""
-    lines = [f"🧊 <b>K-Refriger 유통기한 알림</b>", f"📅 {escape(today)}", ""]
+    lines = ["🧊 <b>K-Refriger 유통기한 알림</b>", f"📅 {escape(today)}", ""]
     if not expiring and not expired:
         lines.append(f"✅ {days}일 이내에 유통기한이 끝나는 재료가 없어요.")
         return "\n".join(lines)

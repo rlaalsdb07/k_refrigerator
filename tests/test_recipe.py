@@ -9,8 +9,6 @@
 import json
 import os
 import sys
-from unittest import mock
-import pytest
 
 _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if _ROOT not in sys.path:
@@ -18,7 +16,7 @@ if _ROOT not in sys.path:
 
 from src.recipe.schema import Recipe, RecipeResponse  # noqa: E402
 from src.recipe.generator import RecipeGenerator, generate_recipes  # noqa: E402
-from src.recipe.prompts import build_recipe_prompt, SUPPORTED_CUISINES  # noqa: E402
+from src.recipe.prompts import build_recipe_prompt  # noqa: E402
 from src.notify.messages import recipe_card, recipes_message  # noqa: E402
 from src.main_c import main as main_c  # noqa: E402
 
