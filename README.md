@@ -82,6 +82,40 @@ notify_recipes(recipes)  # 팀원 C: [{title, cuisine, time, uses_expiring, ingr
 
 ---
 
+## 🍳 3-3. 팀원 C 상세 구현 내역 (AI 식단 엔진)
+
+### 1) Gemini 기반 맞춤형 레시피 생성 및 Pydantic 스키마 (`src/recipe/`)
+- **잔여 식재료 기반 프롬프트 엔지니어링 (`prompts.py`)**:
+  - 팀원 B의 재고 DB에서 가용 식재료(`get_available_ingredients()`)와 유통기한 임박 식재료(`get_expiring_items(days=3)`)를 주입
+  - 임박 식재료를 최우선으로 소비하도록 유도하며, 실제로 활용된 재료를 `uses_expiring`에 명시
+  - 집집마다 구비된 기본 양념(간장, 소금, 설탕, 고춧가루, 식용유, 마늘 등)을 자유롭게 조합하여 현실적인 레시피 도출
+- **정형화 스키마 (`schema.py`)**:
+  - `Recipe` (Pydantic v2): `title`, `cuisine`, `time`, `difficulty`, `description`, `uses_expiring`, `ingredients`, `steps`, `tips`
+  - 팀원 D의 텔레그램 카드 포맷(`messages.recipe_card`)과 100% 호환
+- **지능형 Mock 엔진 내장 (`generator.py`)**:
+  - `GEMINI_API_KEY`가 없거나 API 호출 실패 시에도, 입력된 식재료와 임박 재료, 선택한 cuisine 스타일을 조합하여 완성도 높은 Mock 레시피를 실시간 생성 (테스트 및 오프라인 데모 완벽 지원)
+
+### 2) `cuisine` 옵션 확장
+- 한식뿐만 아니라 **양식, 중식, 일식, 분식, 퓨전, 다이어트/건강식** 등 다양한 요리 카테고리 지원
+- CLI 인자(`--cuisine`)로 사용자가 원하는 스타일을 지정하여 레시피 생성 가능
+
+### 3) 팀원 간 인터페이스 연동
+- **팀원 B 연계**: `InventoryManager`로부터 가용 재료와 D-3 임박 재료를 자동 수신
+- **팀원 D 연계**: 생성된 레시피를 `notify_recipes(recipes)`를 통해 텔레그램 카드 메시지로 즉시 전송
+- **팀원 A 연계**: 일일 파이프라인에서 호출 가능한 `generate_recipes()` 함수 제공
+
+### 4) 실행 방법 (`src/main_c.py`)
+```bash
+python src/main_c.py --demo                      # 재고 DB 연동 전체 추천 데모
+python src/main_c.py --cuisine 양식               # 양식 스타일 레시피 추천
+python src/main_c.py --cuisine 일식 --count 3     # 일식 3가지 메뉴 추천
+python src/main_c.py --ingredients "두부,대파" --expiring "두부" # 수동 식재료 지정
+python src/main_c.py --demo --save data/recipes.json          # 결과를 recipes.json으로 저장
+python src/main_c.py --demo --notify --dry-run   # 생성 후 텔레그램 알림 시뮬레이션
+```
+
+---
+
 ## 📁 4. 디렉토리 구조
 
 ```text
@@ -99,16 +133,24 @@ K-Refriger/
 │   │   ├── __init__.py
 │   │   ├── expiry_calculator.py# 유통기한 및 D-day, 기본양념 판별
 │   │   └── inventory_manager.py# 재고 입고/차감/조회 핵심 매니저
+│   ├── recipe/
+│   │   ├── __init__.py         # AI 식단 모듈 인터페이스
+│   │   ├── schema.py           # 레시피 데이터 스키마 (Pydantic v2)
+│   │   ├── prompts.py          # 맞춤형 레시피 프롬프트 엔지니어링
+│   │   └── generator.py        # Gemini API 및 지능형 Mock 레시피 생성기
 │   ├── notify/
 │   │   ├── __init__.py         # 알림 함수 (notify_expiry 등)
 │   │   ├── telegram.py         # Telegram Bot API 클라이언트
 │   │   └── messages.py         # 알림/레시피 카드 메시지 포맷
 │   ├── __init__.py
 │   ├── main_b.py               # 팀원 B 통합 실행 CLI
+│   ├── main_c.py               # 팀원 C AI 식단 엔진 실행 CLI
 │   └── main_d.py               # 팀원 D 텔레그램 알림 CLI
 ├── tests/
 │   ├── test_inventory.py       # 재고 관리 및 차감 로직 단위 테스트
-│   └── test_ocr.py             # OCR 파서 단위 테스트
+│   ├── test_ocr.py             # OCR 파서 단위 테스트
+│   ├── test_notify.py          # 텔레그램 알림 단위 테스트
+│   └── test_recipe.py          # AI 식단 엔진 단위 테스트
 ├── requirements.txt            # 필요 패키지 (google-genai, pydantic 등)
 ├── .env.example                # 환경 변수 설정 템플릿
 └── README.md
@@ -161,7 +203,30 @@ python src/main_b.py --demo
   python src/main_b.py --available
   ```
 
-### 4) 단위 테스트 실행
+### 4) 팀원 C AI 식단 추천 데모 및 개별 실행
+
+- **냉장고 잔여 재고 기반 AI 레시피 추천 전체 데모**:
+  ```bash
+  python src/main_c.py --demo
+  ```
+
+- **cuisine(요리 스타일) 옵션 확장 추천 (양식, 중식, 일식 등)**:
+  ```bash
+  python src/main_c.py --demo --cuisine 양식
+  python src/main_c.py --demo --cuisine 일식 --count 3
+  ```
+
+- **원하는 식재료 및 임박 재료 직접 입력하여 레시피 생성**:
+  ```bash
+  python src/main_c.py --ingredients "삼겹살,양파,두부" --expiring "두부" --cuisine 한식
+  ```
+
+- **레시피 생성 후 JSON 저장 및 텔레그램 알림 연동**:
+  ```bash
+  python src/main_c.py --demo --save data/recipes.json --notify --dry-run
+  ```
+
+### 5) 단위 테스트 실행
 ```bash
 pytest tests/
 ```
